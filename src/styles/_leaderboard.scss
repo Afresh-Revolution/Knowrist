@@ -1,0 +1,63 @@
+@use "variables" as *;
+
+.leaderboard-page {
+  width: 100%;
+  min-height: calc(100vh - 100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2xl $spacing-xl;
+
+  @media (max-width: 768px) {
+    padding: $spacing-xl $spacing-lg;
+    min-height: calc(100vh - 80px);
+  }
+
+  @media (max-width: 640px) {
+    padding: $spacing-lg $spacing-md;
+    min-height: calc(100vh - 60px);
+  }
+}
+
+.leaderboard-content {
+  text-align: center;
+  width: 100%;
+  max-width: 800px;
+}
+
+.leaderboard-title {
+  font-size: $font-size-5xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0 0 $spacing-lg 0;
+  text-align: center;
+
+  @media (max-width: 1024px) {
+    font-size: $font-size-4xl;
+  }
+
+  @media (max-width: 768px) {
+    font-size: $font-size-3xl;
+    margin-bottom: $spacing-md;
+  }
+
+  @media (max-width: 640px) {
+    font-size: $font-size-2xl;
+  }
+}
+
+.leaderboard-message {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+  margin: 0;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: $font-size-lg;
+  }
+
+  @media (max-width: 640px) {
+    font-size: $font-size-base;
+  }
+}

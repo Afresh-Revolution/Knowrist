@@ -1,0 +1,56 @@
+@use 'variables' as *;
+
+.welcome-section {
+  margin-bottom: $spacing-3xl;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-title {
+  font-size: $font-size-5xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-md;
+  line-height: 1.2;
+  background: linear-gradient(135deg, $text-primary 0%, $text-secondary 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  @media (max-width: 1024px) {
+    font-size: $font-size-4xl;
+  }
+
+  @media (max-width: 768px) {
+    font-size: $font-size-3xl;
+    margin-bottom: $spacing-sm;
+  }
+
+  @media (max-width: 640px) {
+    font-size: $font-size-2xl;
+  }
+}
+
+.welcome-subtitle {
+  font-size: $font-size-lg;
+  color: $text-secondary;
+  font-weight: $font-weight-normal;
+
+  @media (max-width: 768px) {
+    font-size: $font-size-base;
+  }
+
+  @media (max-width: 640px) {
+    font-size: $font-size-sm;
+  }
+}

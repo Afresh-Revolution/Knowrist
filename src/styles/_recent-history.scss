@@ -1,0 +1,101 @@
+@use 'variables' as *;
+
+.recent-history-card {
+  background: rgba(10, 14, 39, 0.4);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border-radius: $radius-2xl;
+  padding: $spacing-xl;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+
+  @media (max-width: 768px) {
+    padding: $spacing-lg;
+  }
+
+  @media (max-width: 640px) {
+    padding: $spacing-md;
+  }
+}
+
+.recent-history-title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.recent-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.recent-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: $radius-lg;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  transition: all $transition-base;
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+}
+
+.history-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  flex: 1;
+}
+
+.history-game-name {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.history-time {
+  font-size: $font-size-sm;
+  color: $text-muted;
+}
+
+.history-item-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $spacing-xs;
+}
+
+.history-result {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-transform: capitalize;
+
+  &--victory {
+    color: $accent-green;
+  }
+
+  &--defeat {
+    color: $accent-red;
+  }
+}
+
+.history-points {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+
+  &--victory {
+    color: $accent-green;
+  }
+
+  &--defeat {
+    color: $accent-red;
+  }
+}
