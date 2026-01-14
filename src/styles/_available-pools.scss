@@ -1,0 +1,659 @@
+@use 'variables' as *;
+
+.pools-section {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-3xl;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+    margin-bottom: $spacing-2xl;
+  }
+
+  @media (max-width: 640px) {
+    gap: $spacing-md;
+    margin-bottom: $spacing-xl;
+  }
+}
+
+.available-pools {
+  margin-bottom: 0;
+}
+
+.pools-header {
+  margin-bottom: $spacing-xl;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.pools-title {
+  font-size: $font-size-4xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-sm;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: $font-size-3xl;
+  }
+
+  @media (max-width: 640px) {
+    font-size: $font-size-2xl;
+  }
+}
+
+.pools-subtitle {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  font-weight: $font-weight-normal;
+}
+
+.pools-container {
+  width: 100%;
+}
+
+.pools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: $spacing-lg;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: $spacing-md;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+}
+
+.activity-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.pool-card {
+  position: relative;
+  border-radius: $radius-2xl;
+  overflow: hidden;
+  min-height: 450px;
+  max-width: 400px;
+  cursor: pointer;
+  animation: fadeInUp 0.6s ease-out both;
+  animation-delay: var(--animation-delay, 0ms);
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 14, 39, 0.4);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+  transform: perspective(1000px) 
+    rotateX(var(--rotate-x, 0deg)) 
+    rotateY(var(--rotate-y, 0deg)) 
+    translateZ(calc(var(--weight-depth, 0px) * -1)) 
+    scale(var(--scale, 1));
+
+  @media (max-width: 768px) {
+    min-height: 400px;
+    max-width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    min-height: 380px;
+    max-width: 100%;
+  }
+
+  // Animated border that draws around the card
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: $radius-2xl;
+    border: 1px solid transparent;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(#0a0e27, #0a0e27) padding-box,
+      linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6) border-box;
+    background-clip: padding-box, border-box;
+    -webkit-background-clip: padding-box, border-box;
+    animation: drawBorder 1.2s ease-out forwards;
+  }
+
+  &.is-hovering::before {
+    opacity: 1;
+  }
+
+  // Weight effect overlay at hover point
+  &::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+    left: var(--mouse-x, 50%);
+    top: var(--mouse-y, 50%);
+    transform: translate(-50%, -50%) translateZ(calc(var(--weight-depth, 0px) * -1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &.is-hovering::after {
+    opacity: 1;
+  }
+}
+
+@keyframes drawBorder {
+  0% {
+    clip-path: polygon(0% 0%, 0% 0%, 0% 0%, 0% 0%);
+  }
+  25% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
+  }
+  50% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 0%);
+  }
+  75% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+.pool-card-graphic {
+  position: relative;
+  height: 66.666%;
+  min-height: 300px;
+  overflow: hidden;
+}
+
+.pool-card-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  opacity: 1;
+  transition: opacity $transition-base;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pool-card:hover .pool-card-background {
+  opacity: 1;
+}
+
+.pool-card-overlay {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  // Dark shadow gradient from bottom to top for better text readability
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.5) 30%,
+      rgba(0, 0, 0, 0.3) 60%,
+      rgba(0, 0, 0, 0.1) 85%,
+      transparent 100%
+    );
+    z-index: 0;
+  }
+  
+  // Ensure content is above overlay
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.pool-card-image-section {
+  position: relative;
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+// Logic card background
+.pool-card--logic .pool-card-background {
+  position: relative;
+  overflow: hidden;
+  background: $bg-card;
+}
+
+// Word card background (metallic/fiery/organic)
+.pool-card--word .pool-card-background {
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 25%, #0f0f0f 50%, #1a1a1a 75%, #0f0f0f 100%);
+  background-image: 
+    radial-gradient(ellipse at 25% 35%, rgba(239, 68, 68, 0.5) 0%, transparent 45%),
+    radial-gradient(ellipse at 75% 65%, rgba(245, 158, 11, 0.4) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 80%, rgba(239, 68, 68, 0.2) 0%, transparent 40%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.3) 0%, transparent 30%),
+      radial-gradient(circle at 70% 70%, rgba(245, 158, 11, 0.25) 0%, transparent 30%),
+      radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.2) 0%, transparent 40%);
+    animation: organicMove 8s ease-in-out infinite;
+    filter: blur(20px);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      linear-gradient(
+        135deg,
+        rgba(239, 68, 68, 0.15) 0%,
+        transparent 20%,
+        transparent 40%,
+        rgba(16, 185, 129, 0.1) 50%,
+        transparent 60%,
+        transparent 80%,
+        rgba(245, 158, 11, 0.15) 100%
+      );
+    animation: shimmer 5s ease-in-out infinite;
+  }
+}
+
+@keyframes organicMove {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(10px, -10px) scale(1.1);
+  }
+  66% {
+    transform: translate(-10px, 10px) scale(0.9);
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(50px, 50px);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pool-card-info-section {
+  position: relative;
+  z-index: 1;
+  padding: $spacing-lg;
+  background: rgba(10, 14, 39, 0.5);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 33.333%;
+}
+
+.pool-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pool-tags-left {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  align-items: flex-start;
+}
+
+.pool-category {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-normal;
+  color: $text-primary;
+  background: rgba(10, 14, 39, 0.4);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: badgePulse 2s ease-in-out infinite;
+
+  &--logic {
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+
+    svg {
+      filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+    }
+  }
+
+  &--word {
+    color: #92400e;
+    background: rgba(146, 64, 14, 0.2);
+    border-color: rgba(146, 64, 14, 0.3);
+
+    svg {
+      filter: drop-shadow(0 0 4px rgba(146, 64, 14, 0.5));
+    }
+  }
+}
+
+.pool-status {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-normal;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  background: rgba(10, 14, 39, 0.4);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: badgePulse 2s ease-in-out infinite;
+
+  &--available {
+    color: #ffffff;
+    background: rgba(96, 165, 250, 0.2);
+  }
+
+  &--playing {
+    color: #ffffff;
+    background: rgba(16, 185, 129, 0.2);
+  }
+}
+
+.pool-difficulty {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-normal;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(10, 14, 39, 0.4);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: badgePulse 2s ease-in-out infinite;
+
+  &--easy {
+    color: #ffffff;
+    background: rgba(16, 185, 129, 0.2);
+  }
+
+  &--medium {
+    color: #ffffff;
+    background: rgba(245, 158, 11, 0.2);
+  }
+
+  &--hard {
+    color: #ffffff;
+    background: rgba(239, 68, 68, 0.2);
+  }
+}
+
+.pool-time-remaining {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba(10, 14, 39, 0.4);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-normal;
+  color: $text-primary;
+  width: fit-content;
+  position: absolute;
+  bottom: $spacing-sm;
+  right: 0;
+  z-index: 2;
+  transition: all $transition-base;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: $text-primary;
+    transition: all $transition-base;
+  }
+
+  .pool-card:hover & {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+
+    svg {
+      color: #3b82f6;
+      transform: rotate(360deg);
+      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+    }
+  }
+}
+
+.pool-title {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-sm;
+  line-height: 1.2;
+  transition: all $transition-base;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  .pool-card:hover & {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+  }
+}
+
+.pool-card-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.pool-info-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $text-secondary;
+  transition: all $transition-base;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: $text-secondary;
+    transition: all $transition-base;
+  }
+
+  &:hover {
+    color: $text-primary;
+
+    svg {
+      color: $accent-blue;
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+    }
+  }
+}
+
+.pool-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+    transition: transform $transition-base;
+  }
+
+  // Glow effect when card is hovered
+  .pool-card.is-hovering & {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3), 0 0 20px rgba(96, 165, 250, 0.2);
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.5) 0%, rgba(139, 92, 246, 0.5) 100%);
+    border-color: rgba(59, 130, 246, 0.8);
+    transform: translateY(-2px);
+
+    &::before {
+      left: 100%;
+    }
+
+    svg {
+      transform: scale(1.2) rotate(5deg);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &--ended,
+  &:disabled {
+    background: rgba(107, 114, 128, 0.2);
+    border-color: rgba(107, 114, 128, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    opacity: 0.6;
+
+    &:hover {
+      background: rgba(107, 114, 128, 0.2);
+      border-color: rgba(107, 114, 128, 0.3);
+      transform: none;
+
+      &::before {
+        left: -100%;
+      }
+
+      svg {
+        transform: none;
+      }
+    }
+
+    // Glow effect disabled for ended state
+    .pool-card.is-hovering & {
+      box-shadow: none;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}

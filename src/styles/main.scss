@@ -1,0 +1,47 @@
+@use "variables" as *;
+@use "reset";
+
+// Component styles
+@use "header";
+@use "welcome-section";
+@use "user-stats";
+@use "available-pools";
+@use "recent-history";
+@use "friends-activity";
+@use "chat-bubble";
+@use "leaderboard";
+@use "notifications";
+@use "auth";
+@use "terms";
+@use "app";
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #050810 0%, #080c1a 50%, #050810 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: $radius-full;
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.5);
+  }
+}

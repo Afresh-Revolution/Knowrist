@@ -1,0 +1,25 @@
+@use 'variables' as *;
+
+.main-content {
+  padding: $spacing-xl $spacing-2xl;
+  max-width: 1400px;
+  margin: 0 auto;
+  margin-top: 88px; // Header height: 40px content + 32px padding (16px top + 16px bottom)
+  position: relative;
+  z-index: $z-base;
+
+  @media (max-width: 1024px) {
+    padding: $spacing-lg $spacing-xl;
+    margin-top: 72px; // Header height: 40px content + 32px padding
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-md $spacing-lg;
+    margin-top: 64px; // Header height: 40px content + 24px padding (12px top + 12px bottom)
+  }
+
+  @media (max-width: 640px) {
+    padding: $spacing-sm $spacing-md;
+    margin-top: 56px; // Header height: 36px content + 20px padding (10px top + 10px bottom)
+  }
+}
