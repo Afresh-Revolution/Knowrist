@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import NotificationsPanel from './NotificationsPanel'
 import knowristLogo from '../images/KNOWRIST-LOGO.png'
+import { useWallet } from '../contexts/WalletContext'
 
 type Page = 'dashboard' | 'leaderboard'
 
@@ -9,14 +10,17 @@ interface HeaderProps {
   isProfileOpen?: boolean
   currentPage?: Page
   onPageChange?: (page: Page) => void
+  onDailyChallengeClick?: () => void
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  onProfileClick, 
+const Header: React.FC<HeaderProps> = ({
+  onProfileClick,
   isProfileOpen = false,
   currentPage = 'dashboard',
-  onPageChange
+  onPageChange,
+  onDailyChallengeClick,
 }) => {
+  const { balance } = useWallet()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
 
@@ -119,9 +123,13 @@ const Header: React.FC<HeaderProps> = ({
                     fill="#fbbf24"
                   />
                 </svg>
-                <span className="currency-amount">₦12,450.00</span>
+                <span className="currency-amount">₦{balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
-              <button className="daily-challenge-button">
+              <button
+                className="daily-challenge-button"
+                onClick={onDailyChallengeClick}
+                type="button"
+              >
                 <svg
                   className="lightning-icon"
                   width="16"
@@ -252,9 +260,16 @@ const Header: React.FC<HeaderProps> = ({
                   fill="#fbbf24"
                 />
               </svg>
-              <span className="currency-amount">₦12,450.00</span>
+              <span className="currency-amount">₦{balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
-            <button className="mobile-menu-item daily-challenge-button" onClick={closeMenu}>
+            <button
+              type="button"
+              className="mobile-menu-item daily-challenge-button"
+              onClick={() => {
+                onDailyChallengeClick?.()
+                closeMenu()
+              }}
+            >
               <svg
                 className="lightning-icon"
                 width="16"

@@ -357,6 +357,29 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  width: 100%;
+}
+
+.pool-total-amount-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 12px;
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
+  margin-left: auto;
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .pool-tags-left {
@@ -455,7 +478,8 @@
   }
 }
 
-.pool-time-remaining {
+.pool-time-remaining,
+.pool-countdown-timer {
   display: flex;
   align-items: center;
   gap: $spacing-xs;
@@ -492,6 +516,17 @@
       transform: rotate(360deg);
       filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
     }
+  }
+}
+
+.pool-countdown-timer {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  animation: pulse 1s ease-in-out infinite;
+
+  svg {
+    color: #ef4444;
   }
 }
 

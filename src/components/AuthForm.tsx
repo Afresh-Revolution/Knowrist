@@ -23,7 +23,7 @@ interface AuthFormProps {
 const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
   // Form state management
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin') // Current active tab
-  const [fullname, setFullname] = useState('') // Full name (signup only)
+  const [name, setName] = useState('') // Full name (signup only)
   const [username, setUsername] = useState('') // Username (signup only)
   const [email, setEmail] = useState('') // Email address
   const [password, setPassword] = useState('') // Password
@@ -46,7 +46,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
     
     // Validate signup-specific fields
     if (activeTab === 'signup') {
-      if (!fullname.trim()) {
+      if (!name.trim()) {
         setError('Full name is required')
         return
       }
@@ -71,7 +71,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
       if (activeTab === 'signin') {
         await authService.login({ email, password })
       } else {
-        await authService.signup({ fullname, username, email, password })
+        await authService.signup({ name, username, email, password })
       }
       
       // Authentication successful - close form and proceed to main app
@@ -165,7 +165,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
           {activeTab === 'signup' && (
             <>
               <div className="auth-form-group">
-                <label htmlFor="fullname" className="auth-label">
+                <label htmlFor="name" className="auth-label">
                   Full Name
                 </label>
                 <div className="auth-input-wrapper">
@@ -194,11 +194,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
                   </svg>
                   <input
                     type="text"
-                    id="fullname"
+                    id="name"
                     className="auth-input"
-                    placeholder="John Doe"
-                    value={fullname}
-                    onChange={(e) => setFullname(e.target.value)}
+                    placeholder="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
                 </div>
@@ -236,7 +236,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
                     type="text"
                     id="username"
                     className="auth-input"
-                    placeholder="johndoe"
+                    placeholder="in-game name"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required

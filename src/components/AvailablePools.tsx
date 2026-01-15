@@ -1,36 +1,61 @@
 import React, { useState, useRef } from 'react'
+import { usePools } from '../contexts/PoolContext'
 import poolImage1 from '../images/Image (Neon Matrix) (1).png'
 import poolImage2 from '../images/speed syntax.png'
 import poolImage3 from '../images/Container memory core.png'
 import poolImage4 from '../images/Container quantum leap.png'
 
 interface PoolCardProps {
+  poolId: string
   title: string
   category: string
   status: 'available' | 'playing'
   difficulty: 'easy' | 'medium' | 'hard'
   backgroundType: 'logic' | 'word'
-  players: number
   entryAmount: string
   timeRemaining?: string
   action: 'join' | 'spectate' | 'ended'
   delay?: number
   image: string
+  onJoinGame?: (title: string, entryAmount: string, category: 'Logic' | 'Word', difficulty?: 'easy' | 'medium' | 'hard') => void
+}
+
+interface AvailablePoolsProps {
+  onJoinGame?: (title: string, entryAmount: string, category: 'Logic' | 'Word', difficulty?: 'easy' | 'medium' | 'hard') => void
 }
 
 const PoolCard: React.FC<PoolCardProps> = ({
+  poolId,
   title,
   category,
   status,
   difficulty,
   backgroundType,
-  players,
   entryAmount,
   timeRemaining,
   action,
+  onJoinGame,
   delay = 0,
   image,
 }) => {
+  const { getPool } = usePools()
+  const pool = getPool(poolId)
+  
+  const currentPlayers = pool?.currentPlayers || 0
+  const maxPlayers = pool?.maxPlayers || 0
+  const isFull = pool?.isFull || false
+  const countdownSeconds = pool?.countdownSeconds ?? null
+  const poolStatus = pool?.status || status
+
+  // Format countdown timer
+  const formatCountdown = (seconds: number | null): string => {
+    if (seconds === null || seconds === undefined) return ''
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const isDisabled = isFull || poolStatus === 'starting' || poolStatus === 'playing' || action === 'ended'
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -106,6 +131,18 @@ const PoolCard: React.FC<PoolCardProps> = ({
           }}
         >
           <div className="pool-card-header">
+            {/* Total amount badge */}
+            {pool && pool.totalAmountPaid > 0 && (
+              <div className="pool-total-amount-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2L15.5 8.5L22 10L17 14.5L18 21L12 17.5L6 21L7 14.5L2 10L8.5 8.5L12 2Z"
+                    fill="#fbbf24"
+                  />
+                </svg>
+                <span>₦{pool.totalAmountPaid.toLocaleString()}</span>
+              </div>
+            )}
             <div className="pool-tags-left">
               <div
                 className={`pool-category pool-category--${category.toLowerCase()}`}
@@ -160,7 +197,23 @@ const PoolCard: React.FC<PoolCardProps> = ({
             </span>
           </div>
           <div className="pool-card-image-section">
-            {timeRemaining && (
+            {countdownSeconds !== null && countdownSeconds > 0 ? (
+              <div className="pool-countdown-timer">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8 1C4.134 1 1 4.134 1 8C1 11.866 4.134 15 8 15C11.866 15 15 11.866 15 8C15 4.134 11.866 1 8 1ZM8 13.5C5.515 13.5 3.5 11.485 3.5 9C3.5 6.515 5.515 4.5 8 4.5C10.485 4.5 12.5 6.515 12.5 9C12.5 11.485 10.485 13.5 8 13.5ZM8.5 5.5V9C8.5 9.276 8.276 9.5 8 9.5H5.5C5.224 9.5 5 9.276 5 9C5 8.724 5.224 8.5 5.5 8.5H7.5V5.5C7.5 5.224 7.724 5 8 5C8.276 5 8.5 5.224 8.5 5.5Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <span>Starting in: {formatCountdown(countdownSeconds)}</span>
+              </div>
+            ) : timeRemaining ? (
               <div className="pool-time-remaining">
                 <svg
                   width="16"
@@ -176,7 +229,7 @@ const PoolCard: React.FC<PoolCardProps> = ({
                 </svg>
                 <span>Starts in: {timeRemaining}</span>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -197,7 +250,7 @@ const PoolCard: React.FC<PoolCardProps> = ({
                 fill="currentColor"
               />
             </svg>
-            <span>{players} Players</span>
+            <span>{currentPlayers} / {maxPlayers} Players</span>
           </div>
           <div className="pool-info-item">
             <svg
@@ -216,10 +269,15 @@ const PoolCard: React.FC<PoolCardProps> = ({
           </div>
         </div>
         <button 
-          className={`pool-action-button pool-action-button--${action}`}
-          disabled={action === 'ended'}
+          className={`pool-action-button pool-action-button--${isDisabled ? 'ended' : action}`}
+          disabled={isDisabled}
+          onClick={() => {
+            if (action === 'join' && !isDisabled && onJoinGame) {
+              onJoinGame(title, entryAmount, category as 'Logic' | 'Word', difficulty)
+            }
+          }}
         >
-          {action === 'join' ? 'Join Game' : action === 'spectate' ? 'Spectate' : 'Ended'}
+          {isFull ? 'Pool Full' : poolStatus === 'starting' ? 'Starting...' : poolStatus === 'playing' ? 'Playing' : action === 'join' ? 'Join Game' : action === 'spectate' ? 'Spectate' : 'Ended'}
           {action !== 'ended' && (
             <svg
               width="16"
@@ -257,7 +315,7 @@ const PoolCard: React.FC<PoolCardProps> = ({
   )
 }
 
-const AvailablePools: React.FC = () => {
+const AvailablePools: React.FC<AvailablePoolsProps> = ({ onJoinGame }) => {
   return (
     <section className="available-pools">
       <div className="pools-header">
@@ -269,55 +327,59 @@ const AvailablePools: React.FC = () => {
       <div className="pools-container">
         <div className="pools-grid">
           <PoolCard
+            poolId="neon-matrix"
             title="Neon Matrix"
             category="Logic"
             status="available"
             difficulty="hard"
             backgroundType="logic"
-            players={1240}
             entryAmount="₦50"
             timeRemaining="2h 30m"
             action="join"
             delay={0}
             image={poolImage1}
+            onJoinGame={onJoinGame}
           />
           <PoolCard
+            poolId="speed-syntax"
             title="Speed Syntax"
             category="Word"
             status="playing"
             difficulty="medium"
             backgroundType="word"
-            players={856}
             entryAmount="₦25"
             action="spectate"
             delay={100}
             image={poolImage2}
+            onJoinGame={onJoinGame}
           />
           <PoolCard
+            poolId="memory-core"
             title="Memory Core"
             category="Logic"
             status="available"
             difficulty="easy"
             backgroundType="logic"
-            players={523}
             entryAmount="₦15"
             timeRemaining="1h 15m"
             action="join"
             delay={200}
             image={poolImage3}
+            onJoinGame={onJoinGame}
           />
           <PoolCard
+            poolId="quantum-leap"
             title="Quantum Leap"
             category="Word"
             status="available"
             difficulty="hard"
             backgroundType="word"
-            players={1892}
             entryAmount="₦75"
             timeRemaining="3h 45m"
             action="join"
             delay={300}
             image={poolImage4}
+            onJoinGame={onJoinGame}
           />
         </div>
       </div>
