@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useRef } from 'react'
+import React, { useEffect, useId } from 'react'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 interface PaymentSuccessProps {
   isOpen: boolean
@@ -24,8 +25,8 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
   onContinue,
 }) => {
   const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isClosing, setIsClosing] = React.useState(false)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
 
   // Generate activation code if not provided
   const displayCode = activationCode || `GAME-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
@@ -81,6 +82,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
         aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
+        style={hoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="payment-success-content">

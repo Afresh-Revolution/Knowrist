@@ -1,5 +1,6 @@
-import React, { useEffect, useId, useRef } from 'react'
+import React, { useEffect, useId } from 'react'
 import { type DailyDifficulty } from './DailyChallenge'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 interface ActivationCodeProps {
   isOpen: boolean
@@ -37,9 +38,9 @@ const ActivationCode: React.FC<ActivationCodeProps> = ({
   onContinue,
 }) => {
   const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement | null>(null)
   const [activationCode, setActivationCode] = React.useState<string>('')
   const [isClosing, setIsClosing] = React.useState(false)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
 
   // Handle close with fade-out animation
   const handleClose = () => {
@@ -99,6 +100,7 @@ const ActivationCode: React.FC<ActivationCodeProps> = ({
         aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
+        style={hoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="activation-code-header">

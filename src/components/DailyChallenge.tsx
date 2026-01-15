@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from 'react'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 export type DailyDifficulty = 'easy' | 'medium' | 'hard'
 
@@ -20,9 +21,9 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({
   onSelectDifficulty,
 }) => {
   const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isClosing, setIsClosing] = React.useState(false)
   const overlayRef = useRef<HTMLDivElement | null>(null)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
 
   // Handle close with fade-out animation
   const handleClose = () => {
@@ -68,6 +69,7 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({
         aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
+        style={hoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="daily-challenge-header">

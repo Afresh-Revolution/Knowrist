@@ -1,4 +1,5 @@
 import React from 'react'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 interface TermsAndConditionsProps {
   onClose: () => void
@@ -6,6 +7,7 @@ interface TermsAndConditionsProps {
 
 const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({ onClose }) => {
   const [isClosing, setIsClosing] = React.useState(false)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
 
   // Handle close with fade-out animation
   const handleClose = () => {
@@ -18,7 +20,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({ onClose }) => {
 
   return (
     <div className={`terms-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
-      <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="terms-modal" ref={dialogRef} style={hoverStyle} onClick={(e) => e.stopPropagation()}>
         <div className="terms-header">
           <h1 className="terms-title">Terms and Conditions</h1>
           <button className="terms-close-button" onClick={handleClose} aria-label="Close">

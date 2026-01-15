@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useRef } from 'react'
+import React, { useEffect, useId } from 'react'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 interface ConfirmEntryProps {
   isOpen: boolean
@@ -24,8 +25,8 @@ const ConfirmEntry: React.FC<ConfirmEntryProps> = ({
   onConfirm,
 }) => {
   const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isClosing, setIsClosing] = React.useState(false)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
 
   // Calculate remaining balance
   const entryFeeNum = parseFloat(entryFee.replace(/[₦,]/g, ''))
@@ -83,6 +84,7 @@ const ConfirmEntry: React.FC<ConfirmEntryProps> = ({
         aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
+        style={hoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="confirm-entry-content">
