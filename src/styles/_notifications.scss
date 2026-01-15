@@ -22,6 +22,43 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+}
+
+.notifications-overlay {
+  &.closing {
+    animation: fadeOut 0.3s ease-out;
+  }
+}
+
 .notifications-panel {
   position: fixed;
   top: 50%;
@@ -41,6 +78,10 @@
   flex-direction: column;
   overflow: hidden;
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .notifications-overlay.closing & {
+    animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   @media (max-width: 640px) {
     width: 95%;

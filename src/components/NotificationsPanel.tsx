@@ -1,44 +1,22 @@
 import React from 'react'
-
-interface Notification {
-  id: string
-  title: string
-  description: string
-  timestamp: string
-  code?: string
-  type: 'activation' | 'welcome' | 'other'
-}
+import { useNotifications } from '../contexts/NotificationContext'
 
 interface NotificationsPanelProps {
   onClose: () => void
 }
 
 const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
-  const notifications: Notification[] = [
-    {
-      id: '1',
-      title: 'Activation Code Ready',
-      description: 'Code for Neon Matrix:',
-      timestamp: '2 mins ago',
-      code: 'GAME-X9Y2',
-      type: 'activation',
-    },
-    {
-      id: '2',
-      title: 'Welcome to Knowrist',
-      description: 'Get ready to challenge your mind!',
-      timestamp: '1 hour ago',
-      type: 'welcome',
-    },
-    {
-      id: '3',
-      title: 'Activation Code Ready',
-      description: 'Code for Speed Syntax:',
-      timestamp: '3 hours ago',
-      code: 'GAME-A7B4',
-      type: 'activation',
-    },
-  ]
+  const { notifications } = useNotifications()
+  const [isClosing, setIsClosing] = React.useState(false)
+
+  // Handle close with fade-out animation
+  const handleClose = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      onClose()
+      setIsClosing(false)
+    }, 300) // Match animation duration
+  }
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)
@@ -47,11 +25,11 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
 
   return (
     <>
-      <div className="notifications-overlay" onClick={onClose}></div>
+      <div className={`notifications-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}></div>
       <div className="notifications-panel">
         <div className="notifications-header">
           <h2 className="notifications-title">Notifications</h2>
-          <button className="notifications-close" onClick={onClose} aria-label="Close notifications">
+          <button className="notifications-close" onClick={handleClose} aria-label="Close notifications">
             <svg
               width="20"
               height="20"

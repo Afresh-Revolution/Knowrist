@@ -1,0 +1,324 @@
+@use "variables" as *;
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutOverlay {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInDialog {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeOutDialog {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+}
+
+.word-input-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  background: radial-gradient(
+      1200px 600px at 50% 20%,
+      rgba(124, 58, 237, 0.15),
+      transparent 55%
+    ),
+    rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 82px 16px 16px;
+  animation: fadeInOverlay 0.3s ease-out;
+
+  &.closing {
+    animation: fadeOutOverlay 0.3s ease-out;
+  }
+}
+
+.word-input-dialog {
+  width: min(420px, calc(100% - 32px));
+  max-height: calc(100vh - 100px);
+  background: linear-gradient(180deg, rgba(10, 14, 30, 0.95), rgba(6, 9, 20, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 30px 120px rgba(0, 0, 0, 0.7);
+  overflow-y: auto;
+  outline: none;
+  animation: fadeInDialog 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .word-input-overlay.closing & {
+    animation: fadeOutDialog 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.word-input-content {
+  padding: 28px 24px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.word-input-icon {
+  margin-bottom: 16px;
+}
+
+.word-input-icon-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  background: rgba(139, 92, 246, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(139, 92, 246, 0.8);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.word-input-title {
+  font-size: clamp(24px, 3vw, 28px);
+  line-height: 1.2;
+  margin: 0 0 8px;
+  color: $text-primary;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.word-input-subtitle {
+  margin: 0 0 16px;
+  color: rgba($text-primary, 0.7);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 100%;
+}
+
+.word-input-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.word-input-progress-dot {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.3s ease;
+
+  &.active {
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.word-input-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.word-input-field-group {
+  text-align: left;
+  width: 100%;
+}
+
+.word-input-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 8px;
+}
+
+.word-input-field {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+  color: $text-primary;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+
+  &::placeholder {
+    color: rgba($text-primary, 0.4);
+    font-weight: 400;
+  }
+
+  &:focus {
+    border-color: rgba(139, 92, 246, 0.9);
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  &.error {
+    border-color: rgba(239, 68, 68, 0.7);
+    background: rgba(239, 68, 68, 0.1);
+
+    &:focus {
+      border-color: rgba(239, 68, 68, 0.9);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+  }
+}
+
+.word-input-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #ef4444;
+  text-align: left;
+}
+
+.word-input-helper {
+  margin: 0 0 20px;
+  color: rgba($text-primary, 0.5);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.word-input-next-button {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(139, 92, 246, 0.7);
+    outline-offset: 3px;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .word-input-overlay {
+    padding: 82px 12px 12px;
+  }
+
+  .word-input-dialog {
+    width: calc(100% - 24px);
+    max-height: calc(100vh - 96px);
+  }
+
+  .word-input-content {
+    padding: 24px 20px 20px;
+  }
+
+  .word-input-icon {
+    margin-bottom: 12px;
+  }
+
+  .word-input-icon-circle {
+    width: 50px;
+    height: 50px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .word-input-title {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .word-input-subtitle {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .word-input-progress {
+    margin-bottom: 16px;
+    gap: 4px;
+  }
+
+  .word-input-progress-dot {
+    width: 24px;
+  }
+
+  .word-input-fields {
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+
+  .word-input-field {
+    padding: 12px 14px;
+    font-size: 18px;
+  }
+
+  .word-input-helper {
+    margin-bottom: 16px;
+    font-size: 11px;
+  }
+
+  .word-input-next-button {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+}

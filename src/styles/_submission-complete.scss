@@ -1,0 +1,328 @@
+@use 'variables' as *;
+
+.submission-complete-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeInOverlay 0.4s ease-out;
+
+  &.closing {
+    animation: fadeOutOverlay 0.4s ease-in;
+  }
+}
+
+.submission-complete-dialog {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: fadeInDialog 0.4s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  .submission-complete-overlay.closing & {
+    animation: fadeOutDialog 0.4s ease-in;
+  }
+}
+
+.submission-complete-content {
+  padding: 40px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.submission-complete-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.submission-complete-icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.3);
+}
+
+.submission-complete-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: $text-primary;
+  text-align: center;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.submission-complete-subtitle {
+  font-size: 14px;
+  color: $text-secondary;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.submission-complete-words {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.submission-complete-word-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.submission-complete-word-number {
+  font-size: 12px;
+  color: $text-secondary;
+  font-weight: 500;
+  min-width: 32px;
+  text-align: center;
+}
+
+.submission-complete-word-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.submission-complete-word-correct {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-primary;
+  letter-spacing: 0.5px;
+}
+
+.submission-complete-word-scrambled {
+  font-size: 12px;
+  color: $text-secondary;
+  letter-spacing: 0.5px;
+}
+
+.submission-complete-word-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fbbf24;
+  font-weight: 600;
+  font-size: 16px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.submission-complete-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.submission-complete-total-label {
+  font-size: 14px;
+  color: $text-primary;
+  font-weight: 500;
+}
+
+.submission-complete-total-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 20px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+  }
+}
+
+.submission-complete-code-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submission-complete-code-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-primary;
+  margin: 0;
+}
+
+.submission-complete-code-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.submission-complete-code-input {
+  width: 100%;
+  padding: 14px 16px;
+  padding-right: 50px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: $text-primary;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: $text-secondary;
+    letter-spacing: 1px;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &.error {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  &.verified {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.submission-complete-code-verifying,
+.submission-complete-code-verified {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $text-secondary;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.submission-complete-code-verified {
+  color: #22c55e;
+}
+
+.submission-complete-code-error {
+  font-size: 12px;
+  color: #ef4444;
+  text-align: center;
+  margin-top: -8px;
+}
+
+.submission-complete-enter-button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+
+  &:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+  }
+
+  &:active:not(.disabled) {
+    transform: translateY(0);
+  }
+
+  &.disabled,
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .submission-complete-content {
+    padding: 32px 20px 20px;
+    gap: 20px;
+  }
+
+  .submission-complete-title {
+    font-size: 24px;
+  }
+
+  .submission-complete-word-item {
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .submission-complete-word-correct {
+    font-size: 14px;
+  }
+
+  .submission-complete-word-score {
+    font-size: 14px;
+  }
+
+  .submission-complete-total-value {
+    font-size: 18px;
+  }
+}
