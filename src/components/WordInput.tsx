@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useId, useRef } from 'react'
+import React, { useState, useEffect, useId } from 'react'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 interface WordInputProps {
   isOpen: boolean
@@ -27,8 +28,8 @@ const WordInput: React.FC<WordInputProps> = ({
   onComplete,
 }) => {
   const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isClosing, setIsClosing] = React.useState(false)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [words, setWords] = useState<Array<{ correct: string; scrambled: string }>>(
     Array(totalWords).fill(null).map(() => ({ correct: '', scrambled: '' }))
@@ -208,6 +209,7 @@ const WordInput: React.FC<WordInputProps> = ({
         aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
+        style={hoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="word-input-content">

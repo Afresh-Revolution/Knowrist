@@ -9,6 +9,7 @@
  */
 
 import React, { useState } from 'react'
+import { useDialogHover } from './hooks/useDialogHover'
 import Header from './components/Header'
 import WelcomeSection from './components/WelcomeSection'
 import UserStats from './components/UserStats'
@@ -57,6 +58,9 @@ const App: React.FC = () => {
   const [isWordInputOpen, setIsWordInputOpen] = useState(false) // Word input modal visibility
   const [isSubmissionCompleteOpen, setIsSubmissionCompleteOpen] = useState(false) // Submission complete modal visibility
   const [submittedWords, setSubmittedWords] = useState<Array<{ correct: string; scrambled: string }>>([]) // Submitted words
+
+  // Hover effect for profile modal
+  const { dialogRef: profileModalRef, style: profileModalStyle } = useDialogHover()
 
   // Handle profile close with fade-out animation
   const handleProfileClose = () => {
@@ -129,7 +133,7 @@ const App: React.FC = () => {
       {/* Profile modal overlay */}
       {showProfile && (
         <div className={`profile-overlay ${isProfileClosing ? 'closing' : ''}`} onClick={handleProfileClose}>
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="profile-modal" ref={profileModalRef} style={profileModalStyle} onClick={(e) => e.stopPropagation()}>
             <ProfileScreen onClose={handleProfileClose} />
           </div>
         </div>

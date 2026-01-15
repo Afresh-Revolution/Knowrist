@@ -246,22 +246,6 @@ const Header: React.FC<HeaderProps> = ({
               </svg>
               <span>Notifications</span>
             </button>
-            <div className="mobile-menu-item currency-display" onClick={closeMenu}>
-              <svg
-                className="trophy-icon"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5 2H15V4H13V6H15C16.105 6 17 6.895 17 8V10C17 12.209 15.209 14 13 14H12V16H15V18H5V16H8V14H7C4.791 14 3 12.209 3 10V8C3 6.895 3.895 6 5 6H7V4H5V2Z"
-                  fill="#fbbf24"
-                />
-              </svg>
-              <span className="currency-amount">₦{balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
             <button
               type="button"
               className="mobile-menu-item daily-challenge-button"

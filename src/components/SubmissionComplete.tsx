@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useId, useRef } from 'react'
 import { gameService } from '../services/gameService'
+import { useDialogHover } from '../hooks/useDialogHover'
 
 interface SubmissionCompleteProps {
   isOpen: boolean
@@ -26,8 +27,8 @@ const SubmissionComplete: React.FC<SubmissionCompleteProps> = ({
   onEnterArena,
 }) => {
   const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isClosing, setIsClosing] = React.useState(false)
+  const { dialogRef, style: hoverStyle } = useDialogHover()
   const [enteredCode, setEnteredCode] = useState('')
   const [codeError, setCodeError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
@@ -172,6 +173,7 @@ const SubmissionComplete: React.FC<SubmissionCompleteProps> = ({
         aria-labelledby={titleId}
         tabIndex={-1}
         ref={dialogRef}
+        style={hoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="submission-complete-content">
