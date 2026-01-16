@@ -4,6 +4,9 @@ $bg-secondary: #141b2d;
 $bg-card: #1a2332;
 $bg-nav-active: #1e2a3a;
 
+// CSS Variable for slate-900 (used in color-mix)
+// slate-900 is typically #0f172a
+
 $text-primary: #ffffff;
 $text-secondary: #b8c5d6;
 $text-muted: #8a9ba8;
@@ -82,3 +85,9 @@ $z-modal-backdrop: 1040;
 $z-modal: 1050;
 $z-popover: 1060;
 $z-tooltip: 1070;
+
+:root {
+  --color-slate-900: #0f172a;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+}

@@ -1,9 +1,17 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useMemo } from 'react'
 import { usePools } from '../contexts/PoolContext'
 import poolImage1 from '../images/Image (Neon Matrix) (1).png'
 import poolImage2 from '../images/speed syntax.png'
 import poolImage3 from '../images/Container memory core.png'
 import poolImage4 from '../images/Container quantum leap.png'
+
+// Default images mapping for pools without custom images
+const defaultImages: Record<string, string> = {
+  'neon-matrix': poolImage1,
+  'speed-syntax': poolImage2,
+  'memory-core': poolImage3,
+  'quantum-leap': poolImage4,
+}
 
 interface PoolCardProps {
   poolId: string
@@ -23,6 +31,50 @@ interface PoolCardProps {
 interface AvailablePoolsProps {
   onJoinGame?: (title: string, entryAmount: string, category: 'Logic' | 'Word', difficulty?: 'easy' | 'medium' | 'hard') => void
 }
+
+// Helper function to map schema categories to display categories
+const getCategoryType = (category: string): 'Logic' | 'Word' => {
+  const upperCategory = category.toUpperCase()
+  if (upperCategory === 'SCIENCE' || upperCategory === 'MATHS') {
+    return 'Logic'
+  }
+  return 'Word'
+}
+
+// Helper function to get display name for category
+const getCategoryDisplayName = (category: string): string => {
+  const upperCategory = category.toUpperCase()
+  const categoryMap: Record<string, string> = {
+    'SCIENCE': 'Science',
+    'MATHS': 'Maths',
+    'ENGLISH': 'English',
+    'LITERATURE': 'Literature',
+    'HISTORY': 'History',
+    'LOGIC': 'Logic',
+    'WORD': 'Word',
+  }
+  return categoryMap[upperCategory] || category
+}
+
+// Helper function to normalize difficulty
+const normalizeDifficulty = (difficulty: string): 'easy' | 'medium' | 'hard' => {
+  const upper = difficulty.toUpperCase()
+  if (upper === 'EASY') return 'easy'
+  if (upper === 'MEDIUM') return 'medium'
+  if (upper === 'HARD') return 'hard'
+  return difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'
+}
+
+// Get background type from category
+const getBackgroundType = (category?: string): 'logic' | 'word' => {
+  if (!category) return 'logic'
+  const upper = category.toUpperCase()
+  if (upper === 'SCIENCE' || upper === 'MATHS') {
+    return 'logic'
+  }
+  return 'word'
+}
+
 
 const PoolCard: React.FC<PoolCardProps> = ({
   poolId,
@@ -46,6 +98,7 @@ const PoolCard: React.FC<PoolCardProps> = ({
   const isFull = pool?.isFull || false
   const countdownSeconds = pool?.countdownSeconds ?? null
   const poolStatus = pool?.status || status
+  const normalizedDifficulty = normalizeDifficulty(difficulty)
 
   // Format countdown timer
   const formatCountdown = (seconds: number | null): string => {
@@ -121,15 +174,15 @@ const PoolCard: React.FC<PoolCardProps> = ({
     >
       {/* Top 2/3: Graphic Area */}
       <div className="pool-card-graphic">
-        <div className="pool-card-background"></div>
         <div 
-          className="pool-card-overlay"
+          className="pool-card-background"
           ref={(el) => {
             if (el) {
               el.style.setProperty('background-image', `url(${image})`)
             }
           }}
-        >
+        ></div>
+        <div className="pool-card-overlay">
           <div className="pool-card-header">
             {/* Total amount badge */}
             {pool && pool.totalAmountPaid > 0 && (
@@ -182,7 +235,7 @@ const PoolCard: React.FC<PoolCardProps> = ({
                     />
                   </svg>
                 )}
-                <span>{category}</span>
+                <span>{getCategoryDisplayName(category)}</span>
               </div>
               <span
                 className={`pool-status pool-status--${status}`}
@@ -190,11 +243,11 @@ const PoolCard: React.FC<PoolCardProps> = ({
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </span>
             </div>
-            <span
-              className={`pool-difficulty pool-difficulty--${difficulty}`}
-            >
-              {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-            </span>
+              <span
+                className={`pool-difficulty pool-difficulty--${normalizedDifficulty}`}
+              >
+                {normalizedDifficulty.charAt(0).toUpperCase() + normalizedDifficulty.slice(1)}
+              </span>
           </div>
           <div className="pool-card-image-section">
             {countdownSeconds !== null && countdownSeconds > 0 ? (
@@ -267,13 +320,87 @@ const PoolCard: React.FC<PoolCardProps> = ({
             </svg>
             <span>{entryAmount} Entry</span>
           </div>
+          {pool?.wordLength && (
+            <div className="pool-info-item">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 4H14M2 8H14M2 12H10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span>{pool.wordLength} Letters</span>
+            </div>
+          )}
+          {pool?.rewardPerQuestion && (
+            <div className="pool-info-item">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8 1L10.5 5.5L15.5 6.5L12 9.5L12.5 14.5L8 12L3.5 14.5L4 9.5L0.5 6.5L5.5 5.5L8 1Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span>₦{pool.rewardPerQuestion.toLocaleString()} per Question</span>
+            </div>
+          )}
+          {pool?.questionsPerUser && (
+            <div className="pool-info-item">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8 1C4.134 1 1 4.134 1 8C1 11.866 4.134 15 8 15C11.866 15 15 11.866 15 8C15 4.134 11.866 1 8 1ZM8 13.5C5.515 13.5 3.5 11.485 3.5 9C3.5 6.515 5.515 4.5 8 4.5C10.485 4.5 12.5 6.515 12.5 9C12.5 11.485 10.485 13.5 8 13.5Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M8 6C7.172 6 6.5 6.672 6.5 7.5C6.5 8.328 7.172 9 8 9C8.828 9 9.5 8.328 9.5 7.5C9.5 6.672 8.828 6 8 6Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span>{pool.questionsPerUser} Questions</span>
+            </div>
+          )}
+          {pool?.durationMinutes && (
+            <div className="pool-info-item">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8 1C4.134 1 1 4.134 1 8C1 11.866 4.134 15 8 15C11.866 15 15 11.866 15 8C15 4.134 11.866 1 8 1ZM8 13.5C5.515 13.5 3.5 11.485 3.5 9C3.5 6.515 5.515 4.5 8 4.5C10.485 4.5 12.5 6.515 12.5 9C12.5 11.485 10.485 13.5 8 13.5ZM8.5 5.5V9C8.5 9.276 8.276 9.5 8 9.5H5.5C5.224 9.5 5 9.276 5 9C5 8.724 5.224 8.5 5.5 8.5H7.5V5.5C7.5 5.224 7.724 5 8 5C8.276 5 8.5 5.224 8.5 5.5Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span>{pool.durationMinutes} Min Duration</span>
+            </div>
+          )}
         </div>
         <button 
           className={`pool-action-button pool-action-button--${isDisabled ? 'ended' : action}`}
           disabled={isDisabled}
           onClick={() => {
             if (action === 'join' && !isDisabled && onJoinGame) {
-              onJoinGame(title, entryAmount, category as 'Logic' | 'Word', difficulty)
+              onJoinGame(title, entryAmount, getCategoryType(category), normalizedDifficulty)
             }
           }}
         >
@@ -316,6 +443,69 @@ const PoolCard: React.FC<PoolCardProps> = ({
 }
 
 const AvailablePools: React.FC<AvailablePoolsProps> = ({ onJoinGame }) => {
+  const { pools } = usePools()
+
+  // Format entry amount
+  const formatEntryAmount = (pool: typeof pools[0]): string => {
+    if (pool.type === 'Daily') {
+      return 'Free'
+    }
+    const fee = pool.entryFee || 0
+    const currency = pool.currency || '₦'
+    return `${currency}${fee.toLocaleString()}`
+  }
+
+  // Determine action based on pool status
+  const getAction = (pool: typeof pools[0]): 'join' | 'spectate' | 'ended' => {
+    if (pool.status === 'ended') return 'ended'
+    if (pool.status === 'playing') return 'spectate'
+    return 'join'
+  }
+
+  // Format time remaining
+  const formatTimeRemaining = (pool: typeof pools[0]): string | undefined => {
+    if (pool.timeUntilEnd && pool.timeUntilEnd > 0) {
+      const hours = Math.floor(pool.timeUntilEnd / 3600)
+      const minutes = Math.floor((pool.timeUntilEnd % 3600) / 60)
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`
+      }
+      return `${minutes}m`
+    }
+    // If scheduledStart is available, calculate time until start
+    if (pool.scheduledStart) {
+      const scheduled = new Date(pool.scheduledStart)
+      const now = new Date()
+      const diffMs = scheduled.getTime() - now.getTime()
+      if (diffMs > 0) {
+        const hours = Math.floor(diffMs / (1000 * 60 * 60))
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        if (hours > 0) {
+          return `${hours}h ${minutes}m`
+        }
+        return `${minutes}m`
+      }
+    }
+    return undefined
+  }
+
+  // Get pool image
+  const getPoolImage = (pool: typeof pools[0]): string => {
+    if (pool.image) return pool.image
+    return defaultImages[pool.id] || poolImage1
+  }
+
+  // Filter out ended pools and sort by status
+  const displayPools = useMemo(() => {
+    return pools
+      .filter(pool => pool.status !== 'ended')
+      .sort((a, b) => {
+        // Sort: available first, then playing
+        const statusOrder = { available: 0, full: 1, starting: 2, playing: 3, ended: 4 }
+        return statusOrder[a.status] - statusOrder[b.status]
+      })
+  }, [pools])
+
   return (
     <section className="available-pools">
       <div className="pools-header">
@@ -326,61 +516,32 @@ const AvailablePools: React.FC<AvailablePoolsProps> = ({ onJoinGame }) => {
       </div>
       <div className="pools-container">
         <div className="pools-grid">
-          <PoolCard
-            poolId="neon-matrix"
-            title="Neon Matrix"
-            category="Logic"
-            status="available"
-            difficulty="hard"
-            backgroundType="logic"
-            entryAmount="₦50"
-            timeRemaining="2h 30m"
-            action="join"
-            delay={0}
-            image={poolImage1}
-            onJoinGame={onJoinGame}
-          />
-          <PoolCard
-            poolId="speed-syntax"
-            title="Speed Syntax"
-            category="Word"
-            status="playing"
-            difficulty="medium"
-            backgroundType="word"
-            entryAmount="₦25"
-            action="spectate"
-            delay={100}
-            image={poolImage2}
-            onJoinGame={onJoinGame}
-          />
-          <PoolCard
-            poolId="memory-core"
-            title="Memory Core"
-            category="Logic"
-            status="available"
-            difficulty="easy"
-            backgroundType="logic"
-            entryAmount="₦15"
-            timeRemaining="1h 15m"
-            action="join"
-            delay={200}
-            image={poolImage3}
-            onJoinGame={onJoinGame}
-          />
-          <PoolCard
-            poolId="quantum-leap"
-            title="Quantum Leap"
-            category="Word"
-            status="available"
-            difficulty="hard"
-            backgroundType="word"
-            entryAmount="₦75"
-            timeRemaining="3h 45m"
-            action="join"
-            delay={300}
-            image={poolImage4}
-            onJoinGame={onJoinGame}
-          />
+          {displayPools.map((pool, index) => {
+            if (!pool.category || !pool.difficulty) {
+              // Skip pools without required metadata
+              return null
+            }
+
+            const normalizedDifficulty = normalizeDifficulty(pool.difficulty)
+
+            return (
+              <PoolCard
+                key={pool.id}
+                poolId={pool.id}
+                title={pool.title}
+                category={pool.category} // Pass original category for display
+                status={pool.status === 'playing' ? 'playing' : 'available'}
+                difficulty={normalizedDifficulty}
+                backgroundType={getBackgroundType(pool.category)}
+                entryAmount={formatEntryAmount(pool)}
+                timeRemaining={formatTimeRemaining(pool)}
+                action={getAction(pool)}
+                delay={index * 100}
+                image={getPoolImage(pool)}
+                onJoinGame={onJoinGame}
+              />
+            )
+          })}
         </div>
       </div>
     </section>

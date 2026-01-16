@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import NotificationsPanel from './NotificationsPanel'
 import knowristLogo from '../images/KNOWRIST-LOGO.png'
 import { useWallet } from '../contexts/WalletContext'
+import { useUser } from '../contexts/UserContext'
 
 type Page = 'dashboard' | 'leaderboard'
 
@@ -21,8 +22,11 @@ const Header: React.FC<HeaderProps> = ({
   onDailyChallengeClick,
 }) => {
   const { balance } = useWallet()
+  const { user } = useUser()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const avatarSeed = user?.username || user?.name || 'User'
+  const displayName = user?.name || user?.username || 'User'
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -170,8 +174,8 @@ const Header: React.FC<HeaderProps> = ({
                 ) : (
                   <div className="profile-avatar">
                     <img
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Oliem"
-                      alt="Oliem"
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`}
+                      alt={displayName}
                     />
                     <div className="profile-status"></div>
                   </div>
@@ -297,8 +301,8 @@ const Header: React.FC<HeaderProps> = ({
               ) : (
                 <div className="profile-avatar">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Oliem"
-                    alt="Oliem"
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`}
+                    alt={displayName}
                   />
                   <div className="profile-status"></div>
                 </div>

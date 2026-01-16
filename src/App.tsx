@@ -8,7 +8,7 @@
  * - Main layout structure
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDialogHover } from './hooks/useDialogHover'
 import Header from './components/Header'
 import WelcomeSection from './components/WelcomeSection'
@@ -26,9 +26,11 @@ import ConfirmEntry from './components/ConfirmEntry'
 import PaymentSuccess from './components/PaymentSuccess'
 import WordInput from './components/WordInput'
 import SubmissionComplete from './components/SubmissionComplete'
+import AdminPanel from './components/AdminPanel'
 import { useWallet } from './contexts/WalletContext'
 import { usePools } from './contexts/PoolContext'
 import { useNotifications } from './contexts/NotificationContext'
+import { useUser } from './contexts/UserContext'
 import { playChime } from './utils/sound'
 
 // Type definition for available pages
@@ -42,12 +44,49 @@ const App: React.FC = () => {
   const { balance, deductBalance } = useWallet()
   const { pools, joinPool, getPool } = usePools()
   const { addNotification } = useNotifications()
+  const { user } = useUser()
   
-  // State management
+  // State management - check for admin routes
+  const getAdminRoute = (): 'main' | 'super' | null => {
+    const path = window.location.pathname
+    if (path === '/mainadmin' || path.startsWith('/mainadmin/')) return 'main'
+    if (path === '/superadmin' || path.startsWith('/superadmin/')) return 'super'
+    return null
+  }
+
+  const [adminRoute, setAdminRoute] = useState<'main' | 'super' | null>(getAdminRoute)
+
+  // Listen for route changes
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setAdminRoute(getAdminRoute())
+    }
+
+    // Check initial route
+    handleRouteChange()
+
+    // Listen for popstate (back/forward buttons)
+    window.addEventListener('popstate', handleRouteChange)
+    
+    // Also check on any navigation (for programmatic navigation)
+    const checkRoute = () => handleRouteChange()
+    const interval = setInterval(checkRoute, 200)
+
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange)
+      clearInterval(interval)
+    }
+  }, [])
   const [showProfile, setShowProfile] = useState(false) // Controls profile modal visibility
   const [isProfileClosing, setIsProfileClosing] = useState(false) // Profile closing animation state
   const [currentPage, setCurrentPage] = useState<Page>('dashboard') // Current active page
-  const [isAuthenticated, setIsAuthenticated] = useState(!isAuthEnabled) // Authentication status (skip auth if disabled)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Check for existing authentication on initial load
+    if (!isAuthEnabled) return true
+    const token = localStorage.getItem('knowrist_token')
+    const userData = localStorage.getItem('knowrist_user')
+    return !!(token && userData)
+  })
   const [isDailyChallengeOpen, setIsDailyChallengeOpen] = useState(false) // Daily Challenge overlay visibility
   const [isActivationCodeOpen, setIsActivationCodeOpen] = useState(false) // Activation code screen visibility
   const [selectedDifficulty, setSelectedDifficulty] = useState<DailyDifficulty | null>(null) // Selected difficulty for activation code
@@ -61,6 +100,24 @@ const App: React.FC = () => {
 
   // Hover effect for profile modal
   const { dialogRef: profileModalRef, style: profileModalStyle } = useDialogHover()
+
+  // Check authentication status on mount and when user changes
+  useEffect(() => {
+    if (!isAuthEnabled) {
+      setIsAuthenticated(true)
+      return
+    }
+
+    const token = localStorage.getItem('knowrist_token')
+    const userData = localStorage.getItem('knowrist_user')
+    
+    // If we have both token and user data, user is authenticated
+    if (token && userData) {
+      setIsAuthenticated(true)
+    } else {
+      setIsAuthenticated(false)
+    }
+  }, [isAuthEnabled, user])
 
   // Handle profile close with fade-out animation
   const handleProfileClose = () => {
@@ -78,6 +135,11 @@ const App: React.FC = () => {
         <AuthForm onClose={() => setIsAuthenticated(true)} />
       </div>
     )
+  }
+
+  // Show admin panel if on admin route
+  if (adminRoute) {
+    return <AdminPanel adminRole={adminRoute} />
   }
 
   // Main application layout (shown after authentication)
