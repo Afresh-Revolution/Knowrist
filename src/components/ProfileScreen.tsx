@@ -71,15 +71,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
   };
 
   const handleLogoutConfirm = () => {
+    // Clear all user data
     setUser(null);
     localStorage.removeItem('knowrist_user');
     localStorage.removeItem('knowrist_token');
+    
+    // Clear any admin data as well
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_role');
+    
     // Clear profile picture
     if (user?.id) {
       localStorage.removeItem(`profile_picture_${user.id}`);
     }
+    
     onClose();
-    // Reload page to reset app state
+    
+    // Navigate to root and reload to show login form
+    window.history.pushState({}, '', '/');
     window.location.reload();
   };
 

@@ -19,13 +19,13 @@ import PrivacyPolicy from "./PrivacyPolicy";
 
 interface AuthFormProps {
   onClose?: () => void; // Callback when authentication is successful
-  onAdminLoginSuccess?: (role: "main" | "super") => void; // Callback for admin login success
+  onAdminLoginSuccess?: (role: "main" | "super") => void; // Callback for admin login success (optional, not used with window.location.href)
   isAdminLogin?: boolean; // Whether this is an admin login form
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({
   onClose,
-  onAdminLoginSuccess,
+  onAdminLoginSuccess: _onAdminLoginSuccess, // Unused - using window.location.href instead
   isAdminLogin = false,
 }) => {
   const { setUser } = useUser();
@@ -100,6 +100,8 @@ const AuthForm: React.FC<AuthFormProps> = ({
         localStorage.setItem("admin_token", response.token);
         localStorage.setItem("admin_role", response.role);
 
+        const adminRole = response.role; // Ensure we have the role
+
         // Show success message
         setSuccessMessage(
           "Admin login successful! Redirecting to admin panel..."
@@ -107,9 +109,18 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
         // Redirect after short delay
         setTimeout(() => {
-          if (onAdminLoginSuccess) {
-            onAdminLoginSuccess(response.role);
-          }
+          // Determine the correct route based on role
+          const route = adminRole === "super" ? "/superadmin" : "/mainadmin";
+
+          console.log(
+            "Admin login success - Role:",
+            adminRole,
+            "Route:",
+            route
+          );
+
+          // Navigate to the appropriate admin route using window.location for immediate effect
+          window.location.href = route;
         }, 1500);
 
         return;
@@ -118,8 +129,8 @@ const AuthForm: React.FC<AuthFormProps> = ({
       // Regular user login or signup
       if (activeTab === "signin") {
         // Check if email belongs to an admin before attempting admin login
-        const isMainAdminEmail = email.toLowerCase() === "admin1@knowrist.com";
-        const isSuperAdminEmail = email.toLowerCase() === "admin@knowrist.com";
+        const isSuperAdminEmail = email.toLowerCase() === "admin1@knowrist.com";
+        const isMainAdminEmail = email.toLowerCase() === "admin@knowrist.com";
         const isAdminEmail = isMainAdminEmail || isSuperAdminEmail;
 
         // Only attempt admin login if email matches known admin emails
@@ -145,15 +156,19 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
               // Redirect to admin panel after short delay
               setTimeout(() => {
-                if (onAdminLoginSuccess) {
-                  onAdminLoginSuccess(adminRole);
-                } else {
-                  // If no callback, navigate to admin route
-                  const route =
-                    adminRole === "super" ? "/superadmin" : "/mainadmin";
-                  window.history.pushState({}, "", route);
-                  window.location.reload();
-                }
+                // Determine the correct route based on role
+                const route =
+                  adminRole === "super" ? "/superadmin" : "/mainadmin";
+
+                console.log(
+                  "Admin login success - Role:",
+                  adminRole,
+                  "Route:",
+                  route
+                );
+
+                // Navigate to the appropriate admin route using window.location for immediate effect
+                window.location.href = route;
               }, 1500);
 
               return;
@@ -183,6 +198,10 @@ const AuthForm: React.FC<AuthFormProps> = ({
         // Store token
         localStorage.setItem("knowrist_token", response.token);
 
+        // Clear any admin tokens/roles to ensure normal users don't access admin panel
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_role");
+
         // Decode JWT to get userId (token contains { userId: user.id })
         // For now, store user with email and construct minimal user object
         // We'll use email as identifier until we can fetch full user data
@@ -198,6 +217,12 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
         // Redirect after short delay
         setTimeout(() => {
+          // Ensure we're on root route (user dashboard), not admin route
+          if (window.location.pathname !== "/") {
+            window.history.pushState({}, "", "/");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          }
+
           if (onClose) onClose();
         }, 1500);
       } else if (activeTab === "signup") {
@@ -216,6 +241,10 @@ const AuthForm: React.FC<AuthFormProps> = ({
           return;
         }
 
+        // Clear any admin tokens/roles to ensure normal users don't access admin panel
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_role");
+
         // Store user data (no token from signup, user needs to login)
         setUser({
           id: response.user.id,
@@ -232,6 +261,12 @@ const AuthForm: React.FC<AuthFormProps> = ({
         // Redirect after short delay
         // Note: User will need to login separately to get token
         setTimeout(() => {
+          // Ensure we're on root route (user dashboard), not admin route
+          if (window.location.pathname !== "/") {
+            window.history.pushState({}, "", "/");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          }
+
           if (onClose) onClose();
         }, 1500);
       }

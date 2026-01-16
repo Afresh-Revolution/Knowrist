@@ -36,23 +36,30 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ adminRole: initialRole }) => {
     setAdminRole(role)
     setIsAuthenticated(true)
     // Navigate to appropriate route
-    if (role === 'main') {
-      window.history.pushState({}, '', '/mainadmin')
-    } else if (role === 'super') {
-      window.history.pushState({}, '', '/superadmin')
-    }
+    const route = role === 'super' ? '/superadmin' : '/mainadmin'
+    window.history.pushState({}, '', route)
+    // Dispatch popstate event to trigger App.tsx route detection
+    window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
   const handleLogout = () => {
-    // Clear admin session
+    // Clear all admin session data
     localStorage.removeItem('admin_token')
     localStorage.removeItem('admin_role')
+    
+    // Clear any user data as well
+    localStorage.removeItem('knowrist_user')
+    localStorage.removeItem('knowrist_token')
+    
     setIsAuthenticated(false)
     setAdminRole(null)
-    // Navigate back to login page (root)
-    window.history.pushState({}, '', '/')
+    
     // Close logout confirmation modal
     setShowLogoutConfirm(false)
+    
+    // Navigate back to login page (root) and reload to show login form
+    window.history.pushState({}, '', '/')
+    window.location.reload()
   }
 
   // Show login if not authenticated
