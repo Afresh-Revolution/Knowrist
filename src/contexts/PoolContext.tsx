@@ -10,6 +10,22 @@ export interface Pool {
   isFull: boolean
   countdownSeconds: number | null
   status: 'available' | 'full' | 'starting' | 'playing' | 'ended'
+  // Metadata for display
+  category?: 'Logic' | 'Word' | 'SCIENCE' | 'MATHS' | 'ENGLISH' | 'LITERATURE' | 'HISTORY'
+  difficulty?: 'easy' | 'medium' | 'hard' | 'EASY' | 'MEDIUM' | 'HARD'
+  // Store original schema category for proper display
+  schemaCategory?: 'SCIENCE' | 'MATHS' | 'ENGLISH' | 'LITERATURE' | 'HISTORY'
+  type?: 'Daily' | 'Paid'
+  currency?: string
+  image?: string
+  timeUntilStart?: number
+  timeUntilEnd?: number
+  // New schema fields
+  wordLength?: number
+  rewardPerQuestion?: number
+  questionsPerUser?: number
+  scheduledStart?: string // ISO datetime string
+  durationMinutes?: number
 }
 
 interface PoolContextType {
@@ -17,6 +33,27 @@ interface PoolContextType {
   joinPool: (poolId: string, entryFee: number) => boolean
   updatePool: (poolId: string, updates: Partial<Pool>) => void
   getPool: (poolId: string) => Pool | undefined
+  createPool: (poolData: CreatePoolData) => void
+}
+
+export interface CreatePoolData {
+  title: string
+  type: 'Daily' | 'Paid'
+  category: 'Logic' | 'Word' | 'SCIENCE' | 'MATHS' | 'ENGLISH' | 'LITERATURE' | 'HISTORY'
+  difficulty: 'easy' | 'medium' | 'hard'
+  entryFee: string
+  currency: string
+  maxPlayers: number
+  status: 'active' | 'pending' | 'ended'
+  image?: string
+  timeUntilStart?: number
+  timeUntilEnd?: number
+  // New schema fields
+  wordLength?: number
+  rewardPerQuestion?: number
+  questionsPerUser?: number
+  scheduledStart?: string
+  durationMinutes?: number
 }
 
 const PoolContext = createContext<PoolContextType | undefined>(undefined)
@@ -45,6 +82,10 @@ export const PoolProvider: React.FC<PoolProviderProps> = ({ children }) => {
       isFull: false,
       countdownSeconds: null,
       status: 'available',
+      category: 'Logic',
+      difficulty: 'hard',
+      type: 'Paid',
+      currency: '₦',
     },
     {
       id: 'speed-syntax',
@@ -56,6 +97,10 @@ export const PoolProvider: React.FC<PoolProviderProps> = ({ children }) => {
       isFull: false,
       countdownSeconds: null,
       status: 'playing',
+      category: 'Word',
+      difficulty: 'medium',
+      type: 'Paid',
+      currency: '₦',
     },
     {
       id: 'memory-core',
@@ -67,6 +112,10 @@ export const PoolProvider: React.FC<PoolProviderProps> = ({ children }) => {
       isFull: false,
       countdownSeconds: null,
       status: 'available',
+      category: 'Logic',
+      difficulty: 'easy',
+      type: 'Paid',
+      currency: '₦',
     },
     {
       id: 'quantum-leap',
@@ -78,6 +127,10 @@ export const PoolProvider: React.FC<PoolProviderProps> = ({ children }) => {
       isFull: false,
       countdownSeconds: null,
       status: 'available',
+      category: 'Word',
+      difficulty: 'hard',
+      type: 'Paid',
+      currency: '₦',
     },
   ])
 
@@ -113,6 +166,57 @@ export const PoolProvider: React.FC<PoolProviderProps> = ({ children }) => {
     [pools]
   )
 
+  const createPool = useCallback((poolData: CreatePoolData) => {
+    // Parse entry fee - remove currency symbols and commas
+    const entryFeeNum = poolData.type === 'Daily' 
+      ? 0 
+      : parseFloat(poolData.entryFee.replace(/[₦₩$,]/g, '')) || 0
+
+    // Convert admin status to user pool status
+    let userStatus: Pool['status'] = 'available'
+    if (poolData.status === 'active') {
+      userStatus = 'available'
+    } else if (poolData.status === 'pending') {
+      userStatus = 'available' // Will show as available but with countdown
+    } else if (poolData.status === 'ended') {
+      userStatus = 'ended'
+    }
+
+    // Generate pool ID from title
+    const poolId = poolData.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    const newPool: Pool = {
+      id: poolId,
+      title: poolData.title,
+      currentPlayers: 0,
+      maxPlayers: poolData.maxPlayers,
+      totalAmountPaid: 0,
+      entryFee: entryFeeNum,
+      isFull: false,
+      countdownSeconds: poolData.timeUntilStart && poolData.timeUntilStart > 0 
+        ? poolData.timeUntilStart 
+        : null,
+      status: userStatus,
+      category: poolData.category,
+      difficulty: poolData.difficulty,
+      type: poolData.type,
+      currency: poolData.currency,
+      image: poolData.image,
+      timeUntilStart: poolData.timeUntilStart,
+      timeUntilEnd: poolData.timeUntilEnd,
+      wordLength: poolData.wordLength,
+      rewardPerQuestion: poolData.rewardPerQuestion,
+      questionsPerUser: poolData.questionsPerUser,
+      scheduledStart: poolData.scheduledStart,
+      durationMinutes: poolData.durationMinutes,
+    }
+
+    setPools((prev) => [...prev, newPool])
+  }, [])
+
   // Countdown timer effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -142,7 +246,7 @@ export const PoolProvider: React.FC<PoolProviderProps> = ({ children }) => {
   }, [])
 
   return (
-    <PoolContext.Provider value={{ pools, joinPool, updatePool, getPool }}>
+    <PoolContext.Provider value={{ pools, joinPool, updatePool, getPool, createPool }}>
       {children}
     </PoolContext.Provider>
   )

@@ -1,10 +1,115 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useUser } from "../contexts/UserContext";
+import { useWallet } from "../contexts/WalletContext";
+import ConfirmLogout from "./ConfirmLogout";
+import ConfirmDeleteAccount from "./ConfirmDeleteAccount";
+import { authService } from "../services/authService";
 
 interface ProfileScreenProps {
   onClose: () => void;
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
+  const { user, setUser } = useUser();
+  const { balance, isLoading: isBalanceLoading } = useWallet();
+  const displayName = user?.name || user?.username || "User";
+  const avatarSeed = user?.username || user?.name || "User";
+  
+  // Profile picture state
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Confirmation dialog states
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Load profile picture from localStorage when user changes
+  useEffect(() => {
+    if (user?.id) {
+      const stored = localStorage.getItem(`profile_picture_${user.id}`);
+      setProfilePicture(stored || null);
+    } else {
+      setProfilePicture(null);
+    }
+  }, [user?.id]);
+
+  const handleEditPicture = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+
+      // Read file as data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setProfilePicture(result);
+        // Save to localStorage
+        if (user?.id) {
+          localStorage.setItem(`profile_picture_${user.id}`, result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setUser(null);
+    localStorage.removeItem('knowrist_user');
+    localStorage.removeItem('knowrist_token');
+    // Clear profile picture
+    if (user?.id) {
+      localStorage.removeItem(`profile_picture_${user.id}`);
+    }
+    onClose();
+    // Reload page to reset app state
+    window.location.reload();
+  };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteAccountConfirm = async () => {
+    try {
+      const token = localStorage.getItem('knowrist_token') || undefined;
+      
+      // Call API to delete account from database
+      await authService.deleteAccount(token);
+      
+      // Clear all user data
+      setUser(null);
+      localStorage.removeItem('knowrist_user');
+      localStorage.removeItem('knowrist_token');
+      if (user?.id) {
+        localStorage.removeItem(`profile_picture_${user.id}`);
+      }
+      onClose();
+      // Reload page to reset app state
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete account. Please try again.');
+    }
+  };
+
   return (
     <div className="profile-screen">
       <button className="profile-close" onClick={onClose} aria-label="Close">
@@ -20,28 +125,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
       <div className="profile-content">
         <div className="profile-sidebar">
           <div className="profile-card">
-            <button className="profile-settings-button">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            <button 
+              className="profile-settings-button" 
+              onClick={handleEditPicture}
+              type="button"
+              aria-label="Edit display picture"
+            >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path
-                  d="M10 12C11.105 12 12 11.105 12 10C12 8.895 11.105 8 10 8C8.895 8 8 8.895 8 10C8 11.105 8.895 12 10 12Z"
-                  fill="currentColor"
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M10 2L12.5 7.5L18.5 8.5L14.5 12.5L15.5 18.5L10 15.5L4.5 18.5L5.5 12.5L1.5 8.5L7.5 7.5L10 2ZM10 4.5L8.5 8.5L4.5 9.5L7.5 12.5L6.5 16.5L10 14.5L13.5 16.5L12.5 12.5L15.5 9.5L11.5 8.5L10 4.5Z"
+                  d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
                   fill="currentColor"
                 />
               </svg>
             </button>
             <div className="profile-avatar-large">
               <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Oliem"
-                alt="Oliem"
+                src={profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`}
+                alt={displayName}
               />
               <div className="profile-status-large"></div>
             </div>
-            <h2 className="profile-name">Oliem</h2>
+            <h2 className="profile-name">{displayName}</h2>
             <div className="profile-rank">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path
@@ -75,6 +186,40 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
                 JOINED: Oct 2023
               </button>
             </div>
+            <div className="profile-account-actions">
+              <button 
+                className="profile-account-button profile-account-button-logout"
+                onClick={handleLogout}
+                type="button"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Logout
+              </button>
+              <button 
+                className="profile-account-button profile-account-button-delete"
+                onClick={handleDeleteAccount}
+                type="button"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Delete Account
+              </button>
+            </div>
           </div>
         </div>
         <div className="profile-main">
@@ -92,7 +237,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
             </div>
             <div className="wallet-content-row">
               <div className="wallet-balance">
-                <span className="wallet-amount">₦12,450.00</span>
+                <span className="wallet-amount">
+                  {isBalanceLoading ? (
+                    'Loading...'
+                  ) : (
+                    `₦${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  )}
+                </span>
                 <p className="wallet-subtitle">Available for withdrawal</p>
               </div>
               <div className="wallet-actions">
@@ -276,6 +427,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
           </div>
         </div>
       </div>
+      
+      {/* Logout Confirmation Dialog */}
+      <ConfirmLogout
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+      
+      {/* Delete Account Confirmation Dialog */}
+      <ConfirmDeleteAccount
+        isOpen={showDeleteConfirm}
+        currentBalance={balance}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteAccountConfirm}
+      />
     </div>
   );
 };

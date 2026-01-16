@@ -311,10 +311,54 @@
   font-size: $font-size-sm;
   text-align: center;
   animation: shake 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
 
   @media (max-width: 640px) {
     padding: $spacing-sm;
     font-size: $font-size-xs;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.auth-success-message {
+  padding: $spacing-md;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: $radius-md;
+  color: #86efac;
+  font-size: $font-size-sm;
+  text-align: center;
+  animation: fadeInUp 0.5s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+
+  @media (max-width: 640px) {
+    padding: $spacing-sm;
+    font-size: $font-size-xs;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

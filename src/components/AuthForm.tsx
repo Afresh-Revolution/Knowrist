@@ -1,6 +1,6 @@
 /**
  * Authentication Form Component
- * 
+ *
  * Handles user login and signup with:
  * - Tab switching between Sign In and Sign Up
  * - Form validation
@@ -10,124 +10,286 @@
  * - Integration with auth service API
  */
 
-import React, { useState, useRef } from 'react'
-import { authService } from '../services/authService'
-import knowristLogo from '../images/KNOWRIST-LOGO.png'
-import TermsAndConditions from './TermsAndConditions'
-import PrivacyPolicy from './PrivacyPolicy'
+import React, { useState, useRef } from "react";
+import { authService } from "../services/authService";
+import { useUser } from "../contexts/UserContext";
+import knowristLogo from "../images/KNOWRIST-LOGO.png";
+import TermsAndConditions from "./TermsAndConditions";
+import PrivacyPolicy from "./PrivacyPolicy";
 
 interface AuthFormProps {
-  onClose?: () => void // Callback when authentication is successful
+  onClose?: () => void; // Callback when authentication is successful
+  onAdminLoginSuccess?: (role: "main" | "super") => void; // Callback for admin login success
+  isAdminLogin?: boolean; // Whether this is an admin login form
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
+const AuthForm: React.FC<AuthFormProps> = ({
+  onClose,
+  onAdminLoginSuccess,
+  isAdminLogin = false,
+}) => {
+  const { setUser } = useUser();
+
   // Form state management
-  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin') // Current active tab
-  const [name, setName] = useState('') // Full name (signup only)
-  const [username, setUsername] = useState('') // Username (signup only)
-  const [email, setEmail] = useState('') // Email address
-  const [password, setPassword] = useState('') // Password
-  const [showPassword, setShowPassword] = useState(false) // Password visibility toggle
-  const [error, setError] = useState<string | null>(null) // Error message
-  const [isLoading, setIsLoading] = useState(false) // Loading state during API calls
-  const [isHovering, setIsHovering] = useState(false) // Hover state for 3D effect
-  const [acceptedTerms, setAcceptedTerms] = useState(false) // Terms acceptance checkbox
-  const [showTerms, setShowTerms] = useState(false) // Terms modal visibility
-  const [showPrivacy, setShowPrivacy] = useState(false) // Privacy policy modal visibility
-  const formContainerRef = useRef<HTMLDivElement>(null) // Ref for form container (for 3D effects)
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">(
+    isAdminLogin ? "signin" : "signin"
+  ); // Current active tab
+  const [name, setName] = useState(""); // Full name (signup only)
+  const [username, setUsername] = useState(""); // Username (signup only)
+  const [email, setEmail] = useState(""); // Email address
+  const [password, setPassword] = useState(""); // Password
+  const [showPassword, setShowPassword] = useState(false); // Password visibility toggle
+  const [error, setError] = useState<string | null>(null); // Error message
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // Success message
+  const [isLoading, setIsLoading] = useState(false); // Loading state during API calls
+  const [isHovering, setIsHovering] = useState(false); // Hover state for 3D effect
+  const [acceptedTerms, setAcceptedTerms] = useState(false); // Terms acceptance checkbox
+  const [showTerms, setShowTerms] = useState(false); // Terms modal visibility
+  const [showPrivacy, setShowPrivacy] = useState(false); // Privacy policy modal visibility
+  const formContainerRef = useRef<HTMLDivElement>(null); // Ref for form container (for 3D effects)
 
   /**
    * Handle form submission
    * Validates form data and calls appropriate auth service method
    */
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+
     // Validate signup-specific fields
-    if (activeTab === 'signup') {
+    if (activeTab === "signup") {
       if (!name.trim()) {
-        setError('Full name is required')
-        return
+        setError("Full name is required");
+        return;
       }
       if (!username.trim()) {
-        setError('Username is required')
-        return
+        setError("Username is required");
+        return;
       }
       if (password.length < 6) {
-        setError('Password must be at least 6 characters long')
-        return
+        setError("Password must be at least 6 characters long");
+        return;
       }
       if (!acceptedTerms) {
-        setError('You must accept the Terms and Conditions to sign up')
-        return
+        setError("You must accept the Terms and Conditions to sign up");
+        return;
       }
     }
-    
-    setIsLoading(true)
-    
+
+    setIsLoading(true);
+
     try {
-      // Call appropriate authentication method based on active tab
-      if (activeTab === 'signin') {
-        await authService.login({ email, password })
-      } else {
-        await authService.signup({ name, username, email, password })
+      let response: any;
+
+      // Handle admin login separately
+      if (isAdminLogin && activeTab === "signin") {
+        // Use admin/login endpoint - backend returns: { token, admin: { id, email, role } }
+        response = await authService.adminLogin({ email, password });
+
+        // Validate response
+        if (!response.token || !response.role) {
+          setError(
+            "Admin login failed. Invalid credentials or admin account not found."
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        // Store admin token and role
+        localStorage.setItem("admin_token", response.token);
+        localStorage.setItem("admin_role", response.role);
+
+        // Show success message
+        setSuccessMessage(
+          "Admin login successful! Redirecting to admin panel..."
+        );
+
+        // Redirect after short delay
+        setTimeout(() => {
+          if (onAdminLoginSuccess) {
+            onAdminLoginSuccess(response.role);
+          }
+        }, 1500);
+
+        return;
       }
-      
-      // Authentication successful - close form and proceed to main app
-      if (onClose) onClose()
+
+      // Regular user login or signup
+      if (activeTab === "signin") {
+        // Check if email belongs to an admin before attempting admin login
+        const isMainAdminEmail = email.toLowerCase() === "admin1@knowrist.com";
+        const isSuperAdminEmail = email.toLowerCase() === "admin@knowrist.com";
+        const isAdminEmail = isMainAdminEmail || isSuperAdminEmail;
+
+        // Only attempt admin login if email matches known admin emails
+        if (isAdminEmail) {
+          try {
+            const adminResponse = await authService.adminLogin({
+              email,
+              password,
+            });
+
+            // If admin login succeeds, redirect to admin panel
+            if (adminResponse.token && adminResponse.role) {
+              const adminRole = adminResponse.role; // Type assertion: we know it exists from the check above
+
+              // Store admin token and role
+              localStorage.setItem("admin_token", adminResponse.token);
+              localStorage.setItem("admin_role", adminRole);
+
+              // Show success message
+              setSuccessMessage(
+                "Admin login successful! Redirecting to admin panel..."
+              );
+
+              // Redirect to admin panel after short delay
+              setTimeout(() => {
+                if (onAdminLoginSuccess) {
+                  onAdminLoginSuccess(adminRole);
+                } else {
+                  // If no callback, navigate to admin route
+                  const route =
+                    adminRole === "super" ? "/superadmin" : "/mainadmin";
+                  window.history.pushState({}, "", route);
+                  window.location.reload();
+                }
+              }, 1500);
+
+              return;
+            }
+          } catch (adminError: any) {
+            // Admin login failed - show error and stop
+            setError(
+              adminError.message ||
+                "Admin login failed. Invalid credentials or admin account not found."
+            );
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // If not an admin, proceed with regular user login
+        // Use auth/login endpoint - backend returns: { token }
+        response = await authService.login({ email, password });
+
+        // Validate response
+        if (!response.token) {
+          setError("Login failed. Invalid credentials or user not found.");
+          setIsLoading(false);
+          return;
+        }
+
+        // Store token
+        localStorage.setItem("knowrist_token", response.token);
+
+        // Decode JWT to get userId (token contains { userId: user.id })
+        // For now, store user with email and construct minimal user object
+        // We'll use email as identifier until we can fetch full user data
+        setUser({
+          id: "pending", // Will be decoded from token or fetched later
+          name: "User",
+          username: "user",
+          email: email, // Use email from form
+        });
+
+        // Show success message
+        setSuccessMessage("Login successful! Redirecting to dashboard...");
+
+        // Redirect after short delay
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 1500);
+      } else if (activeTab === "signup") {
+        // Use auth/signup endpoint - backend returns: { id, name, username, email } (201)
+        response = await authService.signup({
+          name,
+          username,
+          email,
+          password,
+        });
+
+        // Backend returns user object directly (not nested)
+        if (!response.user || !response.user.id) {
+          setError("Signup failed. Account was not created. Please try again.");
+          setIsLoading(false);
+          return;
+        }
+
+        // Store user data (no token from signup, user needs to login)
+        setUser({
+          id: response.user.id,
+          name: response.user.name,
+          username: response.user.username,
+          email: response.user.email,
+        });
+
+        // Show success message
+        setSuccessMessage(
+          "Account created successfully! Redirecting to dashboard..."
+        );
+
+        // Redirect after short delay
+        // Note: User will need to login separately to get token
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 1500);
+      }
     } catch (error) {
       // Display error message to user
-      setError(error instanceof Error ? error.message : 'Authentication failed. Please try again.')
-    } finally {
-      setIsLoading(false)
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Authentication failed. Please try again."
+      );
+      setIsLoading(false);
     }
-  }
+  };
 
   /**
    * Handle mouse movement for 3D skew effect
    * Calculates mouse position relative to form center and applies skew transform
    */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!formContainerRef.current) return
+    if (!formContainerRef.current) return;
 
-    const rect = formContainerRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const rect = formContainerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
 
     // Calculate distance from center (normalized to -1 to 1)
-    const deltaX = (x - centerX) / centerX
-    const deltaY = (y - centerY) / centerY
+    const deltaX = (x - centerX) / centerX;
+    const deltaY = (y - centerY) / centerY;
 
     // Calculate skew angles (maximum -20 degrees)
-    const skewX = deltaY * -20
-    const skewY = deltaX * 20
+    const skewX = deltaY * -20;
+    const skewY = deltaX * 20;
 
     // Apply skew transform via CSS custom properties
-    formContainerRef.current.style.setProperty('--skew-x', `${skewX}deg`)
-    formContainerRef.current.style.setProperty('--skew-y', `${skewY}deg`)
-  }
+    formContainerRef.current.style.setProperty("--skew-x", `${skewX}deg`);
+    formContainerRef.current.style.setProperty("--skew-y", `${skewY}deg`);
+  };
 
   /**
    * Handle mouse enter - enable hover state for 3D effect
    */
   const handleMouseEnter = () => {
-    setIsHovering(true)
-  }
+    setIsHovering(true);
+  };
 
   /**
    * Handle mouse leave - reset 3D effect to neutral state
    */
   const handleMouseLeave = () => {
-    setIsHovering(false)
+    setIsHovering(false);
     if (formContainerRef.current) {
-      formContainerRef.current.style.setProperty('--skew-x', '0deg')
-      formContainerRef.current.style.setProperty('--skew-y', '0deg')
+      formContainerRef.current.style.setProperty("--skew-x", "0deg");
+      formContainerRef.current.style.setProperty("--skew-y", "0deg");
     }
-  }
+  };
 
   return (
     <div className="auth-container">
@@ -135,34 +297,43 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
         <div className="auth-logo">
           <img src={knowristLogo} alt="Knowrist Logo" />
         </div>
-        <h1 className="auth-brand-name">Knowrist</h1>
-        <p className="auth-tagline">Master your mind, conquer the pool.</p>
+        <h1 className="auth-brand-name">
+          {isAdminLogin ? "KNOWRIST ADMIN" : "Knowrist"}
+        </h1>
+        <p className="auth-tagline">
+          {isAdminLogin
+            ? "Sign in to access the admin panel"
+            : "Master your mind, conquer the pool."}
+        </p>
       </div>
 
       <div
         ref={formContainerRef}
-        className={`auth-form-container ${isHovering ? 'is-hovering' : ''}`}
+        className={`auth-form-container ${isHovering ? "is-hovering" : ""}`}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="auth-tabs">
-          <button
-            className={`auth-tab ${activeTab === 'signin' ? 'active' : ''}`}
-            onClick={() => setActiveTab('signin')}
-          >
-            Sign In
-          </button>
-          <button
-            className={`auth-tab ${activeTab === 'signup' ? 'active' : ''}`}
-            onClick={() => setActiveTab('signup')}
-          >
-            Sign Up
-          </button>
-        </div>
+        {!isAdminLogin && (
+          <div className="auth-tabs">
+            <button
+              className={`auth-tab ${activeTab === "signin" ? "active" : ""}`}
+              onClick={() => setActiveTab("signin")}
+            >
+              Sign In
+            </button>
+            <button
+              className={`auth-tab ${activeTab === "signup" ? "active" : ""}`}
+              onClick={() => setActiveTab("signup")}
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
+        {isAdminLogin && <div style={{ marginBottom: "2rem" }}></div>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {activeTab === 'signup' && (
+          {activeTab === "signup" && (
             <>
               <div className="auth-form-group">
                 <label htmlFor="name" className="auth-label">
@@ -284,7 +455,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
               <label htmlFor="password" className="auth-label">
                 Password
               </label>
-              {activeTab === 'signin' && (
+              {activeTab === "signin" && (
                 <a href="#" className="auth-forgot-link">
                   Forgot password?
                 </a>
@@ -361,11 +532,68 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
 
           {error && (
             <div className="auth-error-message">
-              {error}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M10 6V10M10 14H10.01"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
-          <button type="submit" className="auth-primary-button" disabled={isLoading}>
-            {isLoading ? 'Loading...' : activeTab === 'signin' ? 'Sign In' : 'Sign Up'}
+          {successMessage && (
+            <div className="auth-success-message">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M7 10L9 12L13 8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>{successMessage}</span>
+            </div>
+          )}
+          <button
+            type="submit"
+            className="auth-primary-button"
+            disabled={isLoading}
+          >
+            {isLoading
+              ? "Loading..."
+              : activeTab === "signin"
+              ? "Sign In"
+              : "Sign Up"}
             {!isLoading && (
               <svg
                 width="20"
@@ -385,7 +613,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
             )}
           </button>
 
-          {activeTab === 'signup' && (
+          {activeTab === "signup" && (
             <div className="auth-terms-checkbox">
               <label className="auth-checkbox-label">
                 <input
@@ -395,13 +623,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
                   className="auth-checkbox-input"
                 />
                 <span className="auth-checkbox-text">
-                  I agree to the{' '}
-                  <a 
-                    href="#" 
+                  I agree to the{" "}
+                  <a
+                    href="#"
                     className="auth-terms-link"
                     onClick={(e) => {
-                      e.preventDefault()
-                      setShowTerms(true)
+                      e.preventDefault();
+                      setShowTerms(true);
                     }}
                   >
                     Terms and Conditions
@@ -412,91 +640,95 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
           )}
         </form>
 
-        <div className="auth-separator">
-          <span>OR CONTINUE WITH</span>
-        </div>
+        {!isAdminLogin && (
+          <>
+            <div className="auth-separator">
+              <span>OR CONTINUE WITH</span>
+            </div>
 
-        <div className="auth-social-buttons">
-          <button className="auth-social-button">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 0C5.374 0 0 5.373 0 12C0 17.302 3.438 21.8 8.207 23.387C8.806 23.498 9.043 23.126 9.043 22.787C9.043 22.479 9.031 21.512 9.025 20.576C5.672 21.302 4.967 19.16 4.967 19.16C4.421 17.773 3.634 17.404 3.634 17.404C2.546 16.659 3.717 16.675 3.717 16.675C4.922 16.759 5.556 17.912 5.556 17.912C6.626 19.746 8.363 19.216 9.048 18.909C9.155 18.134 9.466 17.604 9.81 17.305C7.145 17.001 4.343 15.977 4.343 11.388C4.343 10.07 4.812 8.988 5.579 8.152C5.455 7.85 5.044 6.629 5.696 4.978C5.696 4.978 6.704 4.655 9.004 6.207C9.954 5.941 10.98 5.808 12 5.803C13.02 5.808 14.047 5.941 14.997 6.207C17.295 4.655 18.303 4.978 18.303 4.978C18.956 6.63 18.545 7.851 18.421 8.152C19.191 8.988 19.658 10.07 19.658 11.388C19.658 15.988 16.849 16.998 14.177 17.295C14.607 17.667 15.001 18.398 15.001 19.513C15.001 21.116 14.988 22.419 14.988 22.787C14.988 23.129 15.22 23.504 15.826 23.386C20.566 21.797 24 17.3 24 12C24 5.373 18.627 0 12 0Z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>Github</span>
-          </button>
-          <button className="auth-social-button">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.51H17.93C17.68 15.99 16.78 17.24 15.46 18.09V21.09H19.28C21.36 19.13 22.56 16.38 22.56 12.25Z"
-                fill="#4285F4"
-              />
-              <path
-                d="M12 23C15.24 23 17.95 21.99 19.28 21.09L15.46 18.09C14.35 18.81 12.9 19.25 12 19.25C8.87 19.25 6.22 17.14 5.27 14.29H1.28V17.38C2.6 20.03 5.38 23 12 23Z"
-                fill="#34A853"
-              />
-              <path
-                d="M5.27 14.29C5.02 13.57 4.88 12.8 4.88 12C4.88 11.2 5.03 10.43 5.27 9.71V6.62H1.28C0.46 8.24 0 10.06 0 12C0 13.94 0.46 15.76 1.28 17.38L5.27 14.29Z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 4.75C13.77 4.75 15.35 5.36 16.6 6.55L19.34 3.81C17.95 2.54 15.24 1 12 1C5.38 1 2.6 3.97 1.28 6.62L5.27 9.71C6.22 6.86 8.87 4.75 12 4.75Z"
-                fill="#EA4335"
-              />
-            </svg>
-            <span>Google</span>
-          </button>
-        </div>
+            <div className="auth-social-buttons">
+              <button className="auth-social-button">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 0C5.374 0 0 5.373 0 12C0 17.302 3.438 21.8 8.207 23.387C8.806 23.498 9.043 23.126 9.043 22.787C9.043 22.479 9.031 21.512 9.025 20.576C5.672 21.302 4.967 19.16 4.967 19.16C4.421 17.773 3.634 17.404 3.634 17.404C2.546 16.659 3.717 16.675 3.717 16.675C4.922 16.759 5.556 17.912 5.556 17.912C6.626 19.746 8.363 19.216 9.048 18.909C9.155 18.134 9.466 17.604 9.81 17.305C7.145 17.001 4.343 15.977 4.343 11.388C4.343 10.07 4.812 8.988 5.579 8.152C5.455 7.85 5.044 6.629 5.696 4.978C5.696 4.978 6.704 4.655 9.004 6.207C9.954 5.941 10.98 5.808 12 5.803C13.02 5.808 14.047 5.941 14.997 6.207C17.295 4.655 18.303 4.978 18.303 4.978C18.956 6.63 18.545 7.851 18.421 8.152C19.191 8.988 19.658 10.07 19.658 11.388C19.658 15.988 16.849 16.998 14.177 17.295C14.607 17.667 15.001 18.398 15.001 19.513C15.001 21.116 14.988 22.419 14.988 22.787C14.988 23.129 15.22 23.504 15.826 23.386C20.566 21.797 24 17.3 24 12C24 5.373 18.627 0 12 0Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <span>Github</span>
+              </button>
+              <button className="auth-social-button">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.51H17.93C17.68 15.99 16.78 17.24 15.46 18.09V21.09H19.28C21.36 19.13 22.56 16.38 22.56 12.25Z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23C15.24 23 17.95 21.99 19.28 21.09L15.46 18.09C14.35 18.81 12.9 19.25 12 19.25C8.87 19.25 6.22 17.14 5.27 14.29H1.28V17.38C2.6 20.03 5.38 23 12 23Z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.27 14.29C5.02 13.57 4.88 12.8 4.88 12C4.88 11.2 5.03 10.43 5.27 9.71V6.62H1.28C0.46 8.24 0 10.06 0 12C0 13.94 0.46 15.76 1.28 17.38L5.27 14.29Z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 4.75C13.77 4.75 15.35 5.36 16.6 6.55L19.34 3.81C17.95 2.54 15.24 1 12 1C5.38 1 2.6 3.97 1.28 6.62L5.27 9.71C6.22 6.86 8.87 4.75 12 4.75Z"
+                    fill="#EA4335"
+                  />
+                </svg>
+                <span>Google</span>
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="auth-footer">
-        <p className="auth-footer-text">
-          By continuing, you agree to our{' '}
-          <a 
-            href="#" 
-            className="auth-footer-link"
-            onClick={(e) => {
-              e.preventDefault()
-              setShowTerms(true)
-            }}
-          >
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a 
-            href="#" 
-            className="auth-footer-link"
-            onClick={(e) => {
-              e.preventDefault()
-              setShowPrivacy(true)
-            }}
-          >
-            Privacy Policy
-          </a>
-          .
-        </p>
+        {isAdminLogin ? (
+          <p className="auth-footer-text">Authorized personnel only</p>
+        ) : (
+          <p className="auth-footer-text">
+            By continuing, you agree to our{" "}
+            <a
+              href="#"
+              className="auth-footer-link"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowTerms(true);
+              }}
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href="#"
+              className="auth-footer-link"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowPrivacy(true);
+              }}
+            >
+              Privacy Policy
+            </a>
+            .
+          </p>
+        )}
       </div>
-      {showTerms && (
-        <TermsAndConditions onClose={() => setShowTerms(false)} />
-      )}
-      {showPrivacy && (
-        <PrivacyPolicy onClose={() => setShowPrivacy(false)} />
-      )}
+      {showTerms && <TermsAndConditions onClose={() => setShowTerms(false)} />}
+      {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
     </div>
-  )
-}
+  );
+};
 
-export default AuthForm
+export default AuthForm;
