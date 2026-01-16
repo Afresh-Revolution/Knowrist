@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PoolCard from './PoolCard'
 import CreatePoolModal, { type PoolFormData } from './CreatePoolModal'
 import { usePools } from '../contexts/PoolContext'
+import { poolService, type AdminPool } from '../services/poolService'
 
 type AdminRole = 'main' | 'super'
 type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override'
@@ -28,65 +29,92 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   adminRole,
   currentPage,
 }) => {
-  const { pools: contextPools, createPool } = usePools()
-  
-  // Convert context pools to admin pool format
-  const adminPools: Pool[] = contextPools.map((pool) => ({
-    id: pool.id,
-    title: pool.title,
-    type: (pool.type || 'Paid') as 'Daily' | 'Paid',
-    entryFee: pool.type === 'Daily' ? 'Free' : `${pool.currency || '₦'}${pool.entryFee.toLocaleString()}`,
-    currency: pool.currency || '₦',
-    activePlayers: pool.currentPlayers,
-    currentPot: `${pool.currency || '₦'}${pool.totalAmountPaid.toLocaleString()}`,
-    status: pool.status === 'available' || pool.status === 'full' || pool.status === 'starting'
-      ? 'active'
-      : pool.status === 'playing'
-      ? 'active'
-      : 'ended',
-    timeUntilStart: pool.timeUntilStart,
-    timeUntilEnd: pool.timeUntilEnd,
-  }))
+  const { createPool } = usePools()
+  const [pools, setPools] = useState<Pool[]>([])
+  const [isLoadingPools, setIsLoadingPools] = useState(true)
+  const [poolsError, setPoolsError] = useState<string | null>(null)
 
-  // Mock data - replace with actual data from API/context
-  const [pools] = useState<Pool[]>([
-    {
-      id: '1',
-      title: 'Neon Matrix Daily',
-      type: 'Daily',
-      entryFee: 'Free',
-      currency: '₦',
-      activePlayers: 1420,
-      currentPot: '142,000',
-      status: 'active',
-      timeUntilEnd: 3600, // 1 hour in seconds
-    },
-    {
-      id: '2',
-      title: 'Speed Syntax',
-      type: 'Paid',
-      entryFee: '1,000',
-      currency: '₩',
-      activePlayers: 85,
-      currentPot: '85,000',
-      status: 'pending',
-      timeUntilStart: 1800, // 30 minutes in seconds
-    },
-    {
-      id: '3',
-      title: 'Quantum Leap',
-      type: 'Paid',
-      entryFee: '2,500',
-      currency: '₦',
-      activePlayers: 0,
-      currentPot: '0',
-      status: 'ended',
-    },
-  ])
+  // Fetch pools from API on mount and when currentPage changes to 'pools'
+  useEffect(() => {
+    if (currentPage === 'pools') {
+      fetchAdminPools()
+    }
+  }, [currentPage])
+
+  const fetchAdminPools = async () => {
+    try {
+      setIsLoadingPools(true)
+      setPoolsError(null)
+
+      // Get admin token from localStorage
+      const adminToken = localStorage.getItem('admin_token')
+      if (!adminToken) {
+        throw new Error('Admin token not found. Please login again.')
+      }
+
+      // Fetch pools from API
+      const adminPoolsData = await poolService.getAdminPools(adminToken)
+      
+      // Convert backend pool data to admin pool display format
+      const now = new Date()
+      const convertedPools: Pool[] = adminPoolsData.map((pool: AdminPool) => {
+        // Calculate time until start/end
+        const scheduledStart = new Date(pool.scheduled_start)
+        const scheduledEnd = new Date(scheduledStart.getTime() + pool.duration_minutes * 60 * 1000)
+        
+        let timeUntilStart: number | undefined
+        let timeUntilEnd: number | undefined
+        let status: 'active' | 'pending' | 'ended' = 'pending'
+
+        if (now < scheduledStart) {
+          // Pool hasn't started yet
+          timeUntilStart = Math.max(0, Math.floor((scheduledStart.getTime() - now.getTime()) / 1000))
+          status = 'pending'
+        } else if (now >= scheduledStart && now < scheduledEnd) {
+          // Pool is active
+          timeUntilEnd = Math.max(0, Math.floor((scheduledEnd.getTime() - now.getTime()) / 1000))
+          status = pool.status === 'LIVE' || pool.status === 'OPEN' ? 'active' : 'pending'
+        } else {
+          // Pool has ended
+          status = 'ended'
+        }
+
+        // Map backend status to display status
+        if (pool.status === 'ENDED') {
+          status = 'ended'
+        } else if (pool.status === 'LIVE' || pool.status === 'OPEN') {
+          status = 'active'
+        } else if (pool.status === 'WAITING' || pool.status === 'DRAFT') {
+          status = 'pending'
+        }
+
+        return {
+          id: pool.id,
+          title: pool.title,
+          type: pool.entry_fee === 0 ? 'Daily' : 'Paid',
+          entryFee: pool.entry_fee === 0 ? 'Free' : `₦${pool.entry_fee.toLocaleString()}`,
+          currency: '₦',
+          activePlayers: 0, // TODO: Get from backend if available
+          currentPot: '₦0', // TODO: Get from backend if available
+          status,
+          timeUntilStart,
+          timeUntilEnd,
+        }
+      })
+
+      setPools(convertedPools)
+    } catch (error) {
+      console.error('Failed to fetch admin pools:', error)
+      setPoolsError(error instanceof Error ? error.message : 'Failed to fetch pools')
+      setPools([]) // Set empty array on error
+    } finally {
+      setIsLoadingPools(false)
+    }
+  }
 
   const activePoolsCount = pools.filter(p => p.status === 'active').length
-  const totalRevenue = '2.4M'
-  const onlineUsers = 342
+  const totalRevenue = '2.4M' // TODO: Calculate from pools or fetch from API
+  const onlineUsers = 342 // TODO: Fetch from API
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
@@ -94,44 +122,86 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsCreateModalOpen(true)
   }
 
-  const handleCreatePoolSubmit = (poolData: PoolFormData) => {
-    // Create pool in the context (which will show in user dashboard)
-    // Map schema fields to context format
-    const scheduledStart = new Date(poolData.scheduledStart)
-    const now = new Date()
-    const timeUntilStart = Math.max(0, Math.floor((scheduledStart.getTime() - now.getTime()) / 1000))
-    const timeUntilEnd = poolData.durationMinutes * 60
+  const handleCreatePoolSubmit = async (poolData: PoolFormData) => {
+    try {
+      // Get admin token from localStorage
+      const adminToken = localStorage.getItem('admin_token')
+      if (!adminToken) {
+        console.error('Admin token not found. Please login again.')
+        return
+      }
 
-    // Map difficulty from uppercase to lowercase for display
-    const displayDifficulty = poolData.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'
-    
-    // Map status from schema to context format
-    let contextStatus: 'active' | 'pending' | 'ended' = 'pending'
-    if (poolData.status === 'LIVE' || poolData.status === 'OPEN') {
-      contextStatus = 'active'
-    } else if (poolData.status === 'ENDED') {
-      contextStatus = 'ended'
+      // Convert scheduledStart to ISO string format
+      const scheduledStartDate = new Date(poolData.scheduledStart)
+      const scheduledStartISO = scheduledStartDate.toISOString()
+
+      // Prepare pool data in backend schema format
+      const poolRequest = {
+        title: poolData.title,
+        difficulty: poolData.difficulty,
+        category: poolData.category,
+        word_length: poolData.wordLength,
+        entry_fee: poolData.entryFee,
+        reward_per_question: poolData.rewardPerQuestion,
+        max_players: poolData.maxPlayers,
+        questions_per_user: poolData.questionsPerUser,
+        scheduled_start: scheduledStartISO,
+        duration_minutes: poolData.durationMinutes,
+        status: poolData.status,
+      }
+
+      // Call backend API to create pool
+      const response = await poolService.createAdminPool(poolRequest, adminToken)
+      
+      console.log('Pool created successfully:', response)
+
+      // Close modal
+      setIsCreateModalOpen(false)
+
+      // Refresh pools list to show the newly created pool
+      await fetchAdminPools()
+
+      // Also add to context for user dashboard
+      const scheduledStart = new Date(poolData.scheduledStart)
+      const now = new Date()
+      const timeUntilStart = Math.max(0, Math.floor((scheduledStart.getTime() - now.getTime()) / 1000))
+      const timeUntilEnd = poolData.durationMinutes * 60
+
+      // Map difficulty from uppercase to lowercase for display
+      const displayDifficulty = poolData.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'
+      
+      // Map status from schema to context format
+      let contextStatus: 'active' | 'pending' | 'ended' = 'pending'
+      if (poolData.status === 'LIVE' || poolData.status === 'OPEN') {
+        contextStatus = 'active'
+      } else if (poolData.status === 'ENDED') {
+        contextStatus = 'ended'
+      }
+
+      // Add to context for immediate UI update in user dashboard
+      createPool({
+        title: poolData.title,
+        type: poolData.entryFee === 0 ? 'Daily' : 'Paid',
+        category: poolData.category,
+        difficulty: displayDifficulty,
+        entryFee: poolData.entryFee.toString(),
+        currency: '₦',
+        maxPlayers: poolData.maxPlayers,
+        status: contextStatus,
+        image: poolData.image,
+        timeUntilStart: timeUntilStart > 0 ? timeUntilStart : undefined,
+        timeUntilEnd: timeUntilEnd > 0 ? timeUntilEnd : undefined,
+        wordLength: poolData.wordLength,
+        rewardPerQuestion: poolData.rewardPerQuestion,
+        questionsPerUser: poolData.questionsPerUser,
+        scheduledStart: poolData.scheduledStart,
+        durationMinutes: poolData.durationMinutes,
+      })
+    } catch (error) {
+      console.error('Failed to create pool:', error)
+      // You might want to show an error message to the user here
+      alert(error instanceof Error ? error.message : 'Failed to create pool. Please try again.')
     }
-
-    // Store the original schema category so it displays correctly in user pool cards
-    createPool({
-      title: poolData.title,
-      type: poolData.entryFee === 0 ? 'Daily' : 'Paid',
-      category: poolData.category, // Store original schema category (SCIENCE, MATHS, etc.)
-      difficulty: displayDifficulty,
-      entryFee: poolData.entryFee.toString(),
-      currency: '₦', // Default currency
-      maxPlayers: poolData.maxPlayers,
-      status: contextStatus,
-      image: poolData.image,
-      timeUntilStart: timeUntilStart > 0 ? timeUntilStart : undefined,
-      timeUntilEnd: timeUntilEnd > 0 ? timeUntilEnd : undefined,
-      wordLength: poolData.wordLength,
-      rewardPerQuestion: poolData.rewardPerQuestion,
-      questionsPerUser: poolData.questionsPerUser,
-      scheduledStart: poolData.scheduledStart,
-      durationMinutes: poolData.durationMinutes,
-    })
   }
 
   const handleEditPool = (poolId: string) => {
@@ -292,16 +362,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <span>Create Pool</span>
             </button>
           </div>
-          <div className="admin-pools-grid">
-            {adminPools.map((pool) => (
-              <PoolCard
-                key={pool.id}
-                pool={pool}
-                onEdit={() => handleEditPool(pool.id)}
-                onStop={() => handleStopPool(pool.id)}
-              />
-            ))}
-          </div>
+          {isLoadingPools ? (
+            <div className="admin-pools-loading">
+              <p>Loading pools...</p>
+            </div>
+          ) : poolsError ? (
+            <div className="admin-pools-error">
+              <p>Error: {poolsError}</p>
+              <button onClick={fetchAdminPools} className="admin-retry-button">
+                Retry
+              </button>
+            </div>
+          ) : pools.length === 0 ? (
+            <div className="admin-pools-empty">
+              <p>No pools found. Create your first pool to get started.</p>
+            </div>
+          ) : (
+            <div className="admin-pools-grid">
+              {pools.map((pool) => (
+                <PoolCard
+                  key={pool.id}
+                  pool={pool}
+                  onEdit={() => handleEditPool(pool.id)}
+                  onStop={() => handleStopPool(pool.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
         <CreatePoolModal
           isOpen={isCreateModalOpen}
@@ -694,7 +781,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="admin-transactions-filters">
               <select className="admin-transactions-filter-select">
                 <option value="all">All Pools</option>
-                {adminPools.map((pool) => (
+                {pools.map((pool) => (
                   <option key={pool.id} value={pool.id}>
                     {pool.title}
                   </option>

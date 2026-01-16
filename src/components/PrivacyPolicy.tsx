@@ -54,7 +54,6 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
             <ul className="terms-list">
               <li>Device information (IP address, browser type, operating system)</li>
               <li>Usage data (pages visited, features used, time spent)</li>
-              <li>Cookies and similar tracking technologies</li>
             </ul>
           </section>
 
@@ -110,16 +109,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
           </section>
 
           <section className="terms-section">
-            <h2 className="terms-section-title">7. Cookies and Tracking Technologies</h2>
-            <p className="terms-text">
-              We use cookies and similar tracking technologies to track activity on our platform and hold certain information. 
-              You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you 
-              do not accept cookies, you may not be able to use some portions of our service.
-            </p>
-          </section>
-
-          <section className="terms-section">
-            <h2 className="terms-section-title">8. Children's Privacy</h2>
+            <h2 className="terms-section-title">7. Children's Privacy</h2>
             <p className="terms-text">
               Our service is not intended for children under the age of 18. We do not knowingly collect personal information 
               from children under 18. If you are a parent or guardian and believe your child has provided us with personal 
@@ -128,7 +118,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
           </section>
 
           <section className="terms-section">
-            <h2 className="terms-section-title">9. International Data Transfers</h2>
+            <h2 className="terms-section-title">8. International Data Transfers</h2>
             <p className="terms-text">
               Your information may be transferred to and maintained on computers located outside of your state, province, 
               country, or other governmental jurisdiction where data protection laws may differ. By using our service, you 
@@ -137,7 +127,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
           </section>
 
           <section className="terms-section">
-            <h2 className="terms-section-title">10. Changes to This Privacy Policy</h2>
+            <h2 className="terms-section-title">9. Changes to This Privacy Policy</h2>
             <p className="terms-text">
               We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new 
               Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy 
@@ -146,7 +136,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
           </section>
 
           <section className="terms-section">
-            <h2 className="terms-section-title">11. Contact Us</h2>
+            <h2 className="terms-section-title">10. Contact Us</h2>
             <p className="terms-text">
               If you have any questions about this Privacy Policy, please contact us at privacy@knowrist.com
             </p>

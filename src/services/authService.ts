@@ -470,6 +470,8 @@ export const authService = {
 
       const data = await response.json();
 
+      console.log("Admin login response:", data);
+
       // Backend returns: { token, admin: { id, email, role } }
       // role is "ADMIN" or "SUPER_ADMIN" (uppercase)
       if (!data.token || !data.admin) {
@@ -480,6 +482,7 @@ export const authService = {
       // Backend: "ADMIN" -> Frontend: "main"
       // Backend: "SUPER_ADMIN" -> Frontend: "super"
       const backendRole = data.admin.role;
+      console.log("Backend role:", backendRole);
       let role: "main" | "super" = "main";
 
       if (backendRole === "SUPER_ADMIN" || backendRole === "super") {
@@ -488,6 +491,7 @@ export const authService = {
         role = "main";
       }
 
+      console.log("Mapped frontend role:", role);
       return { ...data, role };
     } catch (error) {
       console.error("Admin login error:", error);
