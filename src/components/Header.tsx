@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import NotificationsPanel from './NotificationsPanel'
-import knowristLogo from '../images/KNOWRIST-LOGO.png'
 import { useWallet } from '../contexts/WalletContext'
 import { useUser } from '../contexts/UserContext'
 
@@ -57,7 +56,6 @@ const Header: React.FC<HeaderProps> = ({
         <div className="header-container">
           <div className="header-left">
             <div className="logo">
-              <img src={knowristLogo} alt="Knowrist Logo" className="logo-icon" />
               <span className="logo-text">Knowrist</span>
             </div>
           </div>

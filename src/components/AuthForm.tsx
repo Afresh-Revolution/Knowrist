@@ -13,7 +13,6 @@
 import React, { useState, useRef } from "react";
 import { authService } from "../services/authService";
 import { useUser } from "../contexts/UserContext";
-import knowristLogo from "../images/KNOWRIST-LOGO.png";
 import TermsAndConditions from "./TermsAndConditions";
 import PrivacyPolicy from "./PrivacyPolicy";
 
@@ -329,9 +328,6 @@ const AuthForm: React.FC<AuthFormProps> = ({
   return (
     <div className="auth-container">
       <div className="auth-header">
-        <div className="auth-logo">
-          <img src={knowristLogo} alt="Knowrist Logo" />
-        </div>
         <h1 className="auth-brand-name">
           {isAdminLogin ? "KNOWRIST ADMIN" : "Knowrist"}
         </h1>
