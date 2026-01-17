@@ -5,7 +5,7 @@ import { usePools } from '../contexts/PoolContext'
 import { poolService, type AdminPool } from '../services/poolService'
 
 type AdminRole = 'main' | 'super'
-type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override'
+type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override' | 'chat'
 
 interface AdminDashboardProps {
   adminRole: AdminRole
@@ -33,11 +33,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [pools, setPools] = useState<Pool[]>([])
   const [isLoadingPools, setIsLoadingPools] = useState(true)
   const [poolsError, setPoolsError] = useState<string | null>(null)
+  
+  // Live game monitor state
+  const [selectedPool, setSelectedPool] = useState<{ id: string; title: string } | null>(null)
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null)
+  const [liveGameView, setLiveGameView] = useState<'pools' | 'participants' | 'submissions'>('pools')
+  
+  // Chat state
+  const [isChatExpanded, setIsChatExpanded] = useState(false)
 
-  // Fetch pools from API on mount and when currentPage changes to 'pools'
+  // Fetch pools from API on mount and when currentPage changes to 'pools' or 'live-game'
   useEffect(() => {
-    if (currentPage === 'pools') {
+    if (currentPage === 'pools' || currentPage === 'live-game') {
       fetchAdminPools()
+    }
+  }, [currentPage])
+
+  // Reset live game view when switching away from live-game page
+  useEffect(() => {
+    if (currentPage !== 'live-game') {
+      setLiveGameView('pools')
+      setSelectedPool(null)
+      setSelectedUser(null)
     }
   }, [currentPage])
 
@@ -1101,6 +1118,86 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }
 
   if (currentPage === 'live-game' && adminRole === 'super') {
+    // Mock live game pools data
+    const liveGamePools = [
+      {
+        id: '1',
+        title: 'Neon Matrix Daily',
+        status: 'Live',
+        participants: 142,
+      },
+      {
+        id: '2',
+        title: 'Speed Syntax',
+        status: 'Live',
+        participants: 45,
+      },
+      {
+        id: '3',
+        title: 'Grandmaster Tournament',
+        status: 'Starting',
+        participants: 12,
+      },
+    ]
+
+    // Mock participants data - this would come from API based on selected pool
+    const participants = selectedPool ? [
+      {
+        id: 'p1',
+        name: 'SpeedRacer',
+        status: 'Active',
+        submissions: 2,
+      },
+      {
+        id: 'p2',
+        name: 'CyberOliem',
+        status: 'Active',
+        submissions: 2,
+      },
+    ] : []
+
+    // Mock submissions data - this would come from API based on selected user
+    const submissions = selectedUser ? [
+      {
+        id: '1',
+        scrambled: 'RETTUOCMP',
+        submitted: 'COMPUTER',
+        correct: true,
+        timestamp: '10:05 AM',
+      },
+      {
+        id: '2',
+        scrambled: 'YTXANS',
+        submitted: 'SYNTAX',
+        correct: true,
+        timestamp: '10:06 AM',
+      },
+    ] : []
+
+    // Handle pool click
+    const handlePoolClick = (poolId: string, poolTitle: string) => {
+      setSelectedPool({ id: poolId, title: poolTitle })
+      setLiveGameView('participants')
+      setSelectedUser(null)
+    }
+
+    // Handle participant click
+    const handleParticipantClick = (userId: string, userName: string) => {
+      setSelectedUser({ id: userId, name: userName })
+      setLiveGameView('submissions')
+    }
+
+    // Handle back navigation
+    const handleBackClick = () => {
+      if (liveGameView === 'submissions') {
+        setLiveGameView('participants')
+        setSelectedUser(null)
+      } else if (liveGameView === 'participants') {
+        setLiveGameView('pools')
+        setSelectedPool(null)
+      }
+    }
+
     return (
       <div className="admin-dashboard">
         <div className="admin-metrics">
@@ -1175,7 +1272,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
             <div className="admin-metric-content">
               <div className="admin-metric-label">TOTAL REVENUE</div>
-              <div className="admin-metric-value">₦{totalRevenue}</div>
+              <div className="admin-metric-value">₦2.4M</div>
             </div>
           </div>
           <div className="admin-metric-card">
@@ -1219,19 +1316,372 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
             <div className="admin-metric-content">
               <div className="admin-metric-label">ONLINE USERS</div>
-              <div className="admin-metric-value">{onlineUsers}</div>
+              <div className="admin-metric-value">342</div>
             </div>
           </div>
         </div>
         <div className="admin-live-game-section">
-          <div className="admin-live-game-header">
-            <div>
-              <h1 className="admin-live-game-title">Live Game Monitor</h1>
-              <p className="admin-live-game-subtitle">Monitor active games in real-time.</p>
+          {liveGameView === 'pools' && (
+            <>
+              <div className="admin-live-game-header">
+                <div className="admin-live-game-title-container">
+                  <h1 className="admin-live-game-title">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="admin-live-game-title-icon"
+                    >
+                      <path
+                        d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Live Game Monitor
+                  </h1>
+                  <p className="admin-live-game-subtitle">Select a pool to view active participants.</p>
+                </div>
+              </div>
+              <div className="admin-live-game-pools">
+                {liveGamePools.map((pool) => (
+                  <div key={pool.id} className="admin-live-game-pool-card" onClick={() => handlePoolClick(pool.id, pool.title)}>
+                    <div className="admin-live-game-pool-header-icons">
+                      <div className="admin-live-game-pool-header-icons-left">
+                        <div className="admin-live-game-container-icon">
+                          <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M3 7V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V7Z"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M3 7H21"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <span className="admin-live-game-live-badge">LIVE</span>
+                      </div>
+                      <button className="admin-live-game-pool-expand">
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M5 15L15 5M15 5H5M15 5V15"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="admin-live-game-pool-header">
+                      <div className="admin-live-game-pool-title">{pool.title}</div>
+                    </div>
+                    <div className="admin-live-game-pool-content">
+                      <div className="admin-live-game-pool-status">
+                        <span className={`admin-live-game-status-badge ${pool.status.toLowerCase()}`}>
+                          {pool.status}
+                        </span>
+                      </div>
+                      <div className="admin-live-game-pool-participants">
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="admin-live-game-participants-icon"
+                        >
+                          <path
+                            d="M13 16V14C13 12.9391 12.5786 11.9217 11.8284 11.1716C11.0783 10.4214 10.0609 10 9 10H3C1.93913 10 0.921722 10.4214 0.171573 11.1716C-0.578577 11.9217 -1 12.9391 -1 14V16"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            transform="translate(1, 1)"
+                          />
+                          <path
+                            d="M7 7C9.20914 7 11 5.20914 11 3C11 0.79086 9.20914 -1 7 -1C4.79086 -1 3 0.79086 3 3C3 5.20914 4.79086 7 7 7Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            transform="translate(1, 1)"
+                          />
+                          <path
+                            d="M19 16V14C18.9993 13.1137 18.7044 12.2528 18.1614 11.5523C17.6184 10.8519 16.8581 10.3516 16 10.13"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            transform="translate(1, 1)"
+                          />
+                          <path
+                            d="M12 3.13C12.8604 3.35031 13.623 3.85071 14.1676 4.55232C14.7122 5.25392 15.0078 6.11683 15.0078 7.005C15.0078 7.89318 14.7122 8.75608 14.1676 9.45769C13.623 10.1593 12.8604 10.6597 12 10.88"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            transform="translate(1, 1)"
+                          />
+                        </svg>
+                        <span>{pool.participants} Online</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {liveGameView === 'participants' && selectedPool && (
+            <div className="admin-live-game-participants-view">
+              <div className="admin-live-game-participants-header">
+                <button className="admin-live-game-back-button" onClick={handleBackClick}>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                <h2 className="admin-live-game-participants-title">{selectedPool.title}</h2>
+              </div>
+              <p className="admin-live-game-participants-subtitle">Active Participants: {participants.length}</p>
+              <div className="admin-live-game-participants-grid">
+                {participants.map((participant) => (
+                  <div key={participant.id} className="admin-live-game-participant-card" onClick={() => handleParticipantClick(participant.id, participant.name)}>
+                    <div className="admin-live-game-participant-header">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="admin-live-game-participant-icon">
+                        <path d="M10 10C11.3807 10 12.5 8.88071 12.5 7.5C12.5 6.11929 11.3807 5 10 5C8.61929 5 7.5 6.11929 7.5 7.5C7.5 8.88071 8.61929 10 10 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16.25 15C16.25 13.6193 13.6907 12.5 10 12.5C6.30929 12.5 3.75 13.6193 3.75 15V16.25H16.25V15Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <div className="admin-live-game-participant-info">
+                        <div className="admin-live-game-participant-name">{participant.name}</div>
+                        <div className="admin-live-game-participant-id">ID: {participant.id}</div>
+                      </div>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="admin-live-game-participant-arrow">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="admin-live-game-participant-details">
+                      <div className="admin-live-game-participant-status">
+                        <div className="admin-live-game-participant-status-dot"></div>
+                        <span>{participant.status}</span>
+                      </div>
+                      <div className="admin-live-game-participant-submissions">{participant.submissions} Submissions</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="admin-page-placeholder">
-            <p>Live game monitoring coming soon...</p>
+          )}
+
+          {liveGameView === 'submissions' && selectedUser && (
+            <div className="admin-live-game-submissions-view">
+              <div className="admin-live-game-submissions-user-section">
+                <div className="admin-live-game-submissions-user-header">
+                  <button className="admin-live-game-back-button" onClick={handleBackClick}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="admin-live-game-user-icon">
+                    <path d="M10 10C11.3807 10 12.5 8.88071 12.5 7.5C12.5 6.11929 11.3807 5 10 5C8.61929 5 7.5 6.11929 7.5 7.5C7.5 8.88071 8.61929 10 10 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16.25 15C16.25 13.6193 13.6907 12.5 10 12.5C6.30929 12.5 3.75 13.6193 3.75 15V16.25H16.25V15Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <h2 className="admin-live-game-submissions-user-title">{selectedUser.name}</h2>
+                </div>
+                <p className="admin-live-game-submissions-subtitle">Viewing submission history for this session</p>
+              </div>
+              <div className="admin-live-game-submissions-log">
+                <div className="admin-live-game-submissions-log-header">
+                  <h3 className="admin-live-game-submissions-log-title">Submissions Log</h3>
+                  <span className="admin-live-game-status-badge live">Active</span>
+                </div>
+                <div className="admin-live-game-submissions-list">
+                  {submissions.map((submission, index) => (
+                    <div key={submission.id} className="admin-live-game-submission-item">
+                      <div className="admin-live-game-submission-number">#{index + 1}</div>
+                      <div className="admin-live-game-submission-content">
+                        <div className="admin-live-game-submission-row">
+                          <span className="admin-live-game-submission-label">SCRAMBLED:</span>
+                          <span className="admin-live-game-submission-scrambled">{submission.scrambled}</span>
+                        </div>
+                        <div className="admin-live-game-submission-row">
+                          <span className="admin-live-game-submission-label">SUBMITTED:</span>
+                          <span className="admin-live-game-submission-submitted">{submission.submitted}</span>
+                        </div>
+                      </div>
+                      <div className="admin-live-game-submission-status">
+                        {submission.correct && (
+                          <span className="admin-live-game-submission-correct">Correct</span>
+                        )}
+                        <div className="admin-live-game-submission-time">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                            <path d="M8 4V8L11 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          <span>{submission.timestamp}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (currentPage === 'chat') {
+    return (
+      <div className="admin-dashboard">
+        <div className={`admin-chat-section ${isChatExpanded ? 'expanded' : ''}`}>
+          <div className={`admin-chat-window ${isChatExpanded ? 'expanded' : ''}`}>
+            <div className="admin-chat-header">
+              <div className="admin-chat-header-left">
+                  <div className="admin-chat-avatar">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect x="6" y="6" width="12" height="10" rx="2" fill="currentColor"/>
+                      <circle cx="9.5" cy="10.5" r="1" fill="#ffffff"/>
+                      <circle cx="14.5" cy="10.5" r="1" fill="#ffffff"/>
+                      <path d="M9 14H15" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M6 6V4C6 3.44772 6.44772 3 7 3H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M18 6V4C18 3.44772 17.5523 3 17 3H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    <div className="admin-chat-status-dot"></div>
+                  </div>
+                <div className="admin-chat-header-info">
+                  <div className="admin-chat-header-title">Knowrist Support</div>
+                  <div className="admin-chat-header-subtitle">AI Assistant • Online</div>
+                </div>
+              </div>
+              <button 
+                className="admin-chat-expand-button"
+                onClick={() => setIsChatExpanded(!isChatExpanded)}
+              >
+                {isChatExpanded ? (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M5 5L15 15M15 15H5M15 15V5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M5 15L15 5M15 5H5M15 5V15"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="admin-chat-messages">
+              <div className="admin-chat-message admin-chat-message-user">
+                <div className="admin-chat-message-content">
+                  <div className="admin-chat-message-bubble">
+                    Hello! How can we help you today? You can ask about game rules, payments, or report an issue.
+                  </div>
+                  <div className="admin-chat-message-time">00:16</div>
+                </div>
+                <div className="admin-chat-message-avatar">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect x="6" y="6" width="12" height="10" rx="2" fill="currentColor"/>
+                    <circle cx="9.5" cy="10.5" r="1" fill="#ffffff"/>
+                    <circle cx="14.5" cy="10.5" r="1" fill="#ffffff"/>
+                    <path d="M9 14H15" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M6 6V4C6 3.44772 6.44772 3 7 3H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M18 6V4C18 3.44772 17.5523 3 17 3H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div className="admin-chat-input-container">
+              <input
+                type="text"
+                className="admin-chat-input"
+                placeholder="Type your message..."
+              />
+              <button className="admin-chat-send-button">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

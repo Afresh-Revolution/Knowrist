@@ -1,7 +1,7 @@
 import React from 'react'
 
 type AdminRole = 'main' | 'super'
-type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override'
+type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override' | 'chat'
 
 interface AdminSidebarProps {
   adminRole: AdminRole
@@ -124,6 +124,28 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 />
               </svg>
               <span>Transactions Log</span>
+            </button>
+            <button
+              className={`admin-sidebar-item ${currentPage === 'chat' ? 'active' : ''}`}
+              onClick={() => onPageChange('chat')}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="admin-sidebar-icon"
+              >
+                <path
+                  d="M17 2H3C1.89543 2 1 2.89543 1 4V18L5 14H17C18.1046 14 19 13.1046 19 12V4C19 2.89543 18.1046 2 17 2Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Chat Support</span>
             </button>
           </nav>
         </div>

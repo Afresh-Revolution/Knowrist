@@ -257,9 +257,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
               </div>
               <div className="wallet-actions">
                 <button className="wallet-button wallet-button-fund">
-                  <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
-                      d="M10 12L6 8L10 4"
+                      d="M5 15L15 5M15 5H5M15 5V15"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
@@ -269,9 +269,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onClose }) => {
                   Fund Wallet
                 </button>
                 <button className="wallet-button wallet-button-withdraw">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
-                      d="M12 4L15 1M15 1L12 4M15 1H11V5"
+                      d="M5 15L15 5M15 5H5M15 5V15"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
