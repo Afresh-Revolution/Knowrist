@@ -1,5 +1,4 @@
 import React from "react";
-import knowristLogo from "../images/KNOWRIST-LOGO.png";
 
 interface AdminHeaderProps {
   onLogout: () => void;
@@ -48,11 +47,6 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
             </svg>
           </button>
           <div className="admin-logo">
-            <img
-              src={knowristLogo}
-              alt="Knowrist Logo"
-              className="admin-logo-icon"
-            />
             <span className="admin-logo-text">KNOWRIST ADMIN</span>
           </div>
         </div>
