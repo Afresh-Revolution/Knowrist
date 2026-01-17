@@ -1365,6 +1365,832 @@
   font-size: $font-size-xs;
 }
 
+// Admin Live Game Monitor Section
+.admin-live-game-section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.admin-live-game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-lg;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+.admin-live-game-title-container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.admin-live-game-title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  font-size: $font-size-4xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: $font-size-2xl;
+  }
+
+  @media (max-width: 640px) {
+    font-size: $font-size-xl;
+  }
+}
+
+.admin-live-game-title-icon {
+  width: 24px;
+  height: 24px;
+  color: $accent-blue;
+}
+
+.admin-live-game-subtitle {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.admin-live-game-pools {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: $spacing-lg;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-live-game-pool-card {
+  background-color: color-mix(
+    in oklab,
+    var(--color-slate-900) 50%,
+    transparent
+  );
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  transition: all $transition-base;
+  animation: fadeInUp 0.6s ease-out both;
+  position: relative;
+  cursor: pointer;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+}
+
+.admin-live-game-pool-header-icons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+}
+
+.admin-live-game-pool-header-icons-left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.admin-live-game-container-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8b5cf6;
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 16px rgba(139, 92, 246, 0.4));
+  animation: pulse-glow 2s ease-in-out infinite;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 16px rgba(139, 92, 246, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 24px rgba(139, 92, 246, 0.6));
+  }
+}
+
+.admin-live-game-live-badge {
+  display: inline-block;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.admin-live-game-pool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
+}
+
+.admin-live-game-pool-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  flex: 1;
+}
+
+.admin-live-game-pool-expand {
+  background: none;
+  border: none;
+  padding: $spacing-xs;
+  cursor: pointer;
+  color: #8b5cf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  transition: all $transition-base;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: #a78bfa;
+    background-color: rgba(139, 92, 246, 0.1);
+    filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+  }
+}
+
+.admin-live-game-pool-content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.admin-live-game-pool-status {
+  display: flex;
+  align-items: center;
+}
+
+.admin-live-game-status-badge {
+  display: inline-block;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.live {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  &.starting {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+}
+
+.admin-live-game-pool-participants {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.admin-live-game-participants-icon {
+  width: 18px;
+  height: 18px;
+  color: $text-secondary;
+}
+
+// Participants View
+.admin-live-game-participants-view {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.admin-live-game-participants-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.admin-live-game-back-button {
+  background: none;
+  border: none;
+  padding: $spacing-xs;
+  cursor: pointer;
+  color: $text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  transition: all $transition-base;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: $accent-blue;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.admin-live-game-participants-title {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0;
+}
+
+.admin-live-game-participants-subtitle {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.admin-live-game-participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: $spacing-lg;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-live-game-participant-card {
+  background-color: color-mix(
+    in oklab,
+    var(--color-slate-900) 50%,
+    transparent
+  );
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  transition: all $transition-base;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+}
+
+.admin-live-game-participant-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.admin-live-game-participant-icon {
+  width: 20px;
+  height: 20px;
+  color: $text-primary;
+  flex-shrink: 0;
+}
+
+.admin-live-game-participant-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.admin-live-game-participant-name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.admin-live-game-participant-id {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  font-family: monospace;
+}
+
+.admin-live-game-participant-arrow {
+  width: 20px;
+  height: 20px;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+.admin-live-game-participant-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: $spacing-sm;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-live-game-participant-status {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.admin-live-game-participant-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.admin-live-game-participant-submissions {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+// Submissions View
+.admin-live-game-submissions-view {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.admin-live-game-submissions-user-section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.admin-live-game-submissions-user-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  width: 100%;
+}
+
+.admin-live-game-user-icon {
+  width: 20px;
+  height: 20px;
+  color: $text-primary;
+}
+
+.admin-live-game-submissions-user-title {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0;
+}
+
+.admin-live-game-submissions-subtitle {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  margin: 0;
+  margin-left: calc(20px + 1rem + 20px + 0.75rem); // back button + gap + icon + gap
+}
+
+.admin-live-game-submissions-log {
+  background-color: color-mix(
+    in oklab,
+    var(--color-slate-900) 50%,
+    transparent
+  );
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.admin-live-game-submissions-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-live-game-submissions-log-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0;
+}
+
+.admin-live-game-submissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.admin-live-game-submission-item {
+  display: flex;
+  gap: $spacing-lg;
+  padding: $spacing-lg;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-live-game-submission-number {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $text-secondary;
+  min-width: 40px;
+}
+
+.admin-live-game-submission-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.admin-live-game-submission-row {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: baseline;
+}
+
+.admin-live-game-submission-label {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  text-transform: uppercase;
+  font-weight: $font-weight-semibold;
+  min-width: 100px;
+}
+
+.admin-live-game-submission-scrambled {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: #f59e0b;
+  font-family: monospace;
+}
+
+.admin-live-game-submission-submitted {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  font-family: monospace;
+}
+
+.admin-live-game-submission-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $spacing-sm;
+  min-width: 120px;
+}
+
+.admin-live-game-submission-correct {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.admin-live-game-submission-time {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Admin Chat Section
+
+.admin-chat-section {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: $spacing-xl 0;
+  height: 100%;
+  min-height: calc(100vh - 200px);
+  transition: all $transition-base;
+
+  &.expanded {
+    padding: 0;
+    align-items: stretch;
+    min-height: calc(100vh - 88px); // Account for header height
+  }
+}
+
+.admin-chat-window {
+  width: 100%;
+  max-width: 500px;
+  background-color: color-mix(
+    in oklab,
+    var(--color-slate-900) 50%,
+    transparent
+  );
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-xl;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 200px);
+  min-height: 600px;
+  max-height: 800px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all $transition-base;
+
+  &.expanded {
+    max-width: 100%;
+    width: 100%;
+    height: calc(100vh - 88px);
+    min-height: calc(100vh - 88px);
+    max-height: calc(100vh - 88px);
+    border-radius: 0;
+    margin: 0;
+  }
+}
+
+.admin-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.admin-chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex: 1;
+}
+
+.admin-chat-avatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #ffffff;
+  }
+}
+
+.admin-chat-status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  border: 2px solid rgba(3, 5, 12, 0.8);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.admin-chat-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.admin-chat-header-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+}
+
+.admin-chat-header-subtitle {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.admin-chat-expand-button {
+  background: none;
+  border: none;
+  padding: $spacing-xs;
+  cursor: pointer;
+  color: $text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  transition: all $transition-base;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: $text-primary;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.admin-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-height: 0; // Allows flex child to shrink
+}
+
+.admin-chat-message {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+}
+
+.admin-chat-message-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.admin-chat-message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+  }
+}
+
+.admin-chat-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  max-width: 75%;
+}
+
+.admin-chat-message-user .admin-chat-message-content {
+  align-items: flex-end;
+}
+
+.admin-chat-message-bubble {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: $text-primary;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-chat-message-user .admin-chat-message-bubble {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.admin-chat-message-time {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+  padding-left: $spacing-sm;
+}
+
+.admin-chat-message-user .admin-chat-message-time {
+  padding-left: 0;
+  padding-right: $spacing-sm;
+}
+
+.admin-chat-input-container {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-lg;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.admin-chat-input {
+  flex: 1;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: $text-primary;
+  font-size: $font-size-base;
+  transition: all $transition-base;
+
+  &::placeholder {
+    color: $text-secondary;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, 0.5);
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.admin-chat-send-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all $transition-base;
+  flex-shrink: 0;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
+  }
+}
+
 // Admin Override Section
 .admin-override-section {
   display: flex;

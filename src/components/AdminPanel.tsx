@@ -6,7 +6,7 @@ import AuthForm from './AuthForm'
 import ConfirmLogout from './ConfirmLogout'
 
 type AdminRole = 'main' | 'super'
-type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override'
+type AdminPage = 'pools' | 'wallet' | 'transactions' | 'live-game' | 'system-override' | 'chat'
 
 interface AdminPanelProps {
   adminRole: AdminRole
